@@ -53,3 +53,21 @@ if (searchBox) {
         });
     });
 }
+
+const approveButtons = document.querySelectorAll(".approve-btn");
+const rejectButtons = document.querySelectorAll(".reject-btn");
+
+approveButtons.forEach(function(button) {
+    button.addEventListener("click", function() {
+        const item = button.closest(".approval-item");
+        alert(item.querySelector("h3").textContent.trim() + " Approved!");
+        item.remove();
+    });
+});
+
+rejectButtons.forEach(function(button) {
+    button.addEventListener("click", function() {
+        const item = button.closest(".approval-item");
+        alert(item.querySelector("h3").textContent.trim() + " Rejected!");
+    });
+});
