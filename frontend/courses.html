@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LMS - Courses</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <nav>
+            <h2>LMS</h2>
+            <ul>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="courses.html">Courses</a></li>
+                <li><a href="progress.html">Progress</a></li>
+                <li><a href="notifications.html">Notifications</a></li>
+            </ul>
+        </nav>
+            <main>
+                <h1>Course Catalog</h1>
+
+                <input type="text" id="search-box" placeholder="Search Courses...">
+
+                <div class="course-list">
+                    <div class="course-card">
+                        <h3>Introduction to Python</h3>
+                        <p>Category: Programming</p>
+                        <p>Rating: 4.5 / 5</p>
+                        <a href="course-details.html?courses=python"><button>View Details
+                        </button></a>
+                    </div>
+
+                    <div class="course-card">
+                        <h3>Web Design Basics</h3>
+                        <p>Category: Design</p>
+                        <p>Rating: 4.2 / 5</p>
+                        <a href="course-details.html?courses=webdesign"><button>View Details
+                        </button></a>
+                    </div>
+
+                    <div class="course-card">
+                        <h3>Data Structures</h3>
+                        <p>Category: Programming</p>
+                        <p>Rating: 4.8 / 5</p>
+                        <a href="course-details.html?course=datastructures"><button>
+                            View Details</button></a>
+                    </div>
+                </div>
+            </main>
+            <script src="script.js"></script>
+    </body>
+</html>
