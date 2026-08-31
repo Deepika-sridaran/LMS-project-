@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMS - My Students</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav>
+        <h2>LMS Trainer</h2>
+        <ul>
+            <li><a href="trainer-dashboard.html">Dashboard</a></li>
+            <li><a href="create-course.html">Create Course</a></li>
+            <li><a href="my-students.html">My Students</a></li>
+            <li><a href="evaluate-assignments.html">Evaluate</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <h1>My Students</h1>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Course</th>
+                    <th>Progress</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Meena Raj</td>
+                    <td>Introduction to Python</td>
+                    <td>
+                        <div class="progress-bar-bg" style="max-width: 150px;">
+                            <div class="progress-bar-fill" style="width: 80%;"></div>
+                        </div>
+                    </td>
+                    <td><span class="status-badge status-published">Active</span></td>
+                </tr>
+                <tr>
+                    <td>Suresh Babu</td>
+                    <td>Introduction to Python</td>
+                    <td>
+                        <div class="progress-bar-bg" style="max-width: 150px;">
+                            <div class="progress-bar-fill" style="width: 45%;"></div>
+                        </div>
+                    </td>
+                    <td><span class="status-badge status-published">Active</span></td>
+                </tr>
+                <tr>
+                    <td>Divya S</td>
+                    <td>Advanced JavaScript</td>
+                    <td>
+                        <div class="progress-bar-bg" style="max-width: 150px;">
+                            <div class="progress-bar-fill" style="width: 100%;"></div>
+                        </div>
+                    </td>
+                    <td><span class="status-badge status-draft">Completed</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

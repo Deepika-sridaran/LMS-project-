@@ -71,3 +71,40 @@ rejectButtons.forEach(function(button) {
         alert(item.querySelector("h3").textContent.trim() + " Rejected!");
     });
 });
+
+const courseForm = document.getElementById("create-course-form");
+
+if (courseForm) {
+    const formMessage = document.getElementById("form-message");
+
+    courseForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+        formMessage.textContent = "Course saved as Draft!";
+        formMessage.style.color = "#27ae60";
+    });
+
+    const submitApprovalBtn = document.querySelector(".submit-approval-btn");
+
+    submitApprovalBtn.addEventListener("click", function() {
+        const title = document.getElementById("course-title").value.trim();
+        const category = document.getElementById("course-category").value;
+        const description = document.getElementById("course-description").value.trim();
+
+        if (title === "" || category === "" || description === "") {
+            formMessage.textContent = "Please fill in Title, Category and Description before submitting for approval.";
+            formMessage.style.color = "#c0392b";
+        } else {
+            formMessage.textContent = "Course Submitted for Admin Approval!";
+            formMessage.style.color = "#27ae60";
+        }
+    });
+}
+
+const evalButtons = document.querySelectorAll(".eval-submit-btn");
+
+evalButtons.forEach(function(button) {
+    button.addEventListener("click", function() {
+        const studentName = button.dataset.student;
+        alert("Evaluation submitted for " + studentName + "!");
+    });
+});
