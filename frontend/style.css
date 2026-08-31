@@ -78,3 +78,41 @@ section {
     border: 1px solid #ccc;
     border-radius: 5px;
 }
+
+.progress-item {
+    background-color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    max-width: 400px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar-bg {
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    height: 12px;
+    width: 100%;
+    margin: 8px 0;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    background-color: #27ae60;
+    height: 100%;
+    border-radius: 10px;
+}
+
+#notification-list {
+    list-style: none;
+    max-width: 500px;
+}
+
+.notification-item {
+    background-color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-left: 4px solid #2c3e50;
+}
