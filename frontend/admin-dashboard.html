@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LMS - Admin Dashboard</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <nav>
+            <h2>LMS Admin</h2>
+            <ul>
+                <li><a href="admin-dashboard.html">Dashboard</a></li>
+                <li><a href="manage-users.html">Manage Users</a></li>
+                <li><a href="course-approvals.html">Course Approvals</a></li>
+                <li><a href="manage-categories.html">Categories</a></li>
+            </ul>
+        </nav>
+        <main>
+            <h1>Admin Dashboard</h1>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 id="total-students">120</h3>
+                    <p>Total Students</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="total-trainers">15</h3>
+                    <p>Total Trainers</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="total-courses">32</h3>
+                    <p>Total Courses</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="published-courses">28</h3>
+                    <p>Published Courses</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="pending-approvals">4</h3>
+                    <p>Pending Courses</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="total-enrollments">340</h3>
+                    <p>Total Enrollments</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="completion-rate">62%</h3>
+                    <p>Overall Completion Rate</p>
+                </div>
+            </div>
+            <section id="pending-courses">
+                <h2>Pending Course</h2>
+
+                <div class="approval-item">
+                    <div>
+                        <h3>Advanced JavaScript</h3>
+                        <p>Submitted by: Trainer Kumar</p>
+                    </div>
+                    <div class="approval-actions">
+                        <button class="approve-btn">Approve</button>
+                        <button class="reject-btn">Reject</button>
+                    </div>
+                </div>
+                <div class="approval-item">
+                    <div>
+                        <h3>UI/UX Fundamentals</h3>
+                        <p>Submitted by: Trainer Moni</p>
+                    </div>
+                    <div class="approval-actions">
+                        <button class="approve-btn">Approve</button>
+                        <button class="reject-btn">Reject</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <script src="script.js"></script>
+    </body>
+</html>
