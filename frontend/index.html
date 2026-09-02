@@ -4,13 +4,13 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>LMS - Login</title>
-        <link rel="stylesheet" href="style.css"
+        <link rel="stylesheet" href="style.css">
     </head>
     <body>
 
         <h1>Learning Management System</h1>
 
-        <form>
+        <form id="login-form">
             <h2>Login</h2>
             <label for="email">Email</label>
             <input type="email" id="email" name="email" required>
@@ -18,8 +18,17 @@
             <label for="password">Password</label>
             <input form="password" id="password" name="password" required>
 
+            <label for="role">Login As</label>
+            <select id="role" name="role" required>
+                <option value="">-- Select Role --</option>
+                <option value="student">Student</option>
+                <option value="trainer">Trainer</option>
+                <option value="admin">Admin</option>
+            </select>
+
             <button type="submit">Login</button>
         </form>
+        <p id="login-message"></p>
 
         <script src="script.js"></script>
     </body>

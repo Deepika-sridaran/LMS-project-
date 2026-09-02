@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LMS - Quiz</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <nav>
+            <h2>LMS</h2>
+            <ul>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="courses.html">Courses</a></li>
+                <li><a href="progress.html">Progress</a></li>
+                <li><a href="notifications.html">Notifications</a></li>
+            </ul>
+        </nav>
+        <main>
+            <h1>Quiz: Introduction to Python</h1>
+            <p id="quiz-timer">Time Left: 05:00</p>
+            <form id="quiz-form">
+                <div class="quiz-question">
+                    <h3>1.What does "print()" do in Python?</h3>
+                        <label><input type="radio" name="q1" value="a"> Deletes a variable</label>
+                        <label><input type="radio" name="q1" value="b"> Displays output on screen</label>
+                        <label><input type="radio" name="q1" value="c"> Creates a loop</label>
+                        <label><input type="radio" name="q1" value="d"> Imports a library</label>
+                </div>
+                <div class="quiz-question">
+                    <h3>2. Which symbol is used for comments in Python?</h3>
+                        <label><input type="radio" name="q2" value="a"> #</label>
+                        <label><input type="radio" name="q2" value="b"> //</label>
+                        <label><input type="radio" name="q2" value="c"> /**/</label>
+                        <label><input type="radio" name="q2" value="d"> --</label>
+                </div>
+                <div class="quiz-question">
+                    <h3>3. What data type is the value True</h3>
+                        <label><input type="radio" name="q3" value="a"> String</label>
+                        <label><input type="radio" name="q3" value="b"> Boolean</label>
+                        <label><input type="radio" name="q3" value="c"> Integer</label>
+                        <label><input type="radio" name="q3" value="d"> Float</label>
+                </div>
+                <button type="submit">Submit Quiz</button>
+            </form>
+            <div id="quiz-result"></div>
+        </main>
+        <script src="script.js"></script>
+    </body>
+</html>

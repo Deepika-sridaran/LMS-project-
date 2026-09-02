@@ -70,6 +70,27 @@ section {
     background-color: #1a252f;
 }
 
+.course-edit-btn, .course-delete-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    margin-left: 10px;
+    cursor: pointer;
+    color: white;
+}
+.course-edit-btn { 
+    background-color: #2980b9; 
+}
+.course-edit-btn:hover { 
+    background-color: #21618c; 
+}
+.course-delete-btn { 
+    background-color: #c0392b; 
+}
+.course-delete-btn:hover { 
+    background-color: #922b21; 
+}
+
 #search-box {
     padding: 10px;
     width: 100%;
@@ -342,4 +363,86 @@ tbody tr:hover {
 
 .eval-submit-btn:hover {
     background-color: #1a252f;
+}
+
+.quiz-question {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    max-width: 500px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.quiz-question label {
+    display: block;
+    padding: 8px 0;
+    cursor: pointer;
+}
+
+#quiz-timer {
+    font-weight: bold;
+    color: #c0392b;
+    margin-bottom: 15px;
+}
+
+#quiz-result {
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.certificate {
+    background-color: white;
+    border: 8px double #2c3e50;
+    padding: 40px;
+    text-align: center;
+    max-width: 600px;
+    margin: 20px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.certificate h2 {
+    color: #2c3e50;
+    margin: 15px 0;
+}
+
+#download-cert-btn {
+    background-color: #2c3e50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 15px;
+}
+
+#download-cert-btn:hover {
+    background-color: #1a252f;
+}
+
+.user-edit-btn, .user-suspend-btn, .user-reactivate-btn {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+}
+.user-edit-btn { 
+    background-color: #2980b9; 
+}
+.user-edit-btn:hover { 
+    background-color: #21618c; 
+}
+.user-suspend-btn { 
+    background-color: #c0392b; 
+}
+.user-suspend-btn:hover { 
+    background-color: #922b21; 
+}
+.user-reactivate-btn { 
+    background-color: #27ae60; 
+}
+.user-reactivate-btn:hover { 
+    background-color: #1e8449; 
 }
