@@ -446,3 +446,11 @@ tbody tr:hover {
 .user-reactivate-btn:hover { 
     background-color: #1e8449; 
 }
+.review-item {
+    background-color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    max-width: 500px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}

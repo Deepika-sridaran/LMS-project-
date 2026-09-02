@@ -267,3 +267,57 @@ courseDeleteButtons.forEach(function(button) {
         }
     });
 });
+
+const verifyBtn = document.getElementById("verify-btn");
+
+if (verifyBtn) {
+    // Fake certificate database — later replaced by a real API call
+    // to something like GET /api/certificates/verify/:certNumber
+    const validCertificates = {
+        "LMS-2026-00143": {student: "Student Name ", course: "Introduction to Python",
+            date: "10 Sept 2026"}
+        };
+        verifyBtn.addEventListener("click", function() {
+            const certNumber = document.getElementById("cert-input").value.trim();
+            const result = document.getElementById("verify-result");
+            const certificate = validCertificates[certNumber];
+
+            if (certificate) {
+                result.innerHTML =
+                "<p style='color: #27ae60; font-weight: bold;'>&#10003; Valid Certificate</p>" +
+                "<p>Student: " + certificate.student + "</p>" +
+                "<p>Course: " + certificate.course + "</p>" +
+                "<p>Issued on: " + certificate.date + "</p>";
+            } else {
+                result.innerHTML =
+                "<p style='color: #c0392b; font-weight: bold;'>&#10007; Invalid Certificate Number</p>";
+            }
+        });
+    }
+
+    const reviewForm = document.getElementById("review-form");
+
+    if (reviewForm) {
+        reviewForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const rating = document.getElementById("review-rating").value;
+            const text = document.getElementById("review-text").value.trim();
+
+            if (rating === "" || text === "") {
+                alert("Please Select a Rating and Write a Review.");
+                return;
+            }
+            const stars = "\u2605".repeat(rating) + "\u2606".repeat(5 - rating);
+
+            const newReview = document.createElement("div");
+            newReview.className = "review-item";
+            newReview.innerHTML = "<p><strong>You</strong> - " + stars +
+             "</p><p>" + text + "</p>";
+
+             reviewForm.parentElement.insertBefore(newReview, 
+                reviewForm.parentElement.querySelector("h3"));
+
+                reviewForm.reset();
+        });
+    }
