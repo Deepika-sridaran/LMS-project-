@@ -293,7 +293,7 @@ if (verifyBtn) {
                 "<p style='color: #c0392b; font-weight: bold;'>&#10007; Invalid Certificate Number</p>";
             }
         });
-    }
+}
 
     const reviewForm = document.getElementById("review-form");
 
@@ -351,3 +351,95 @@ if (verifyBtn) {
 
         document.querySelectorAll(".category-delete-btn").forEach(attachCategoryDeleteEvent);
     }
+
+    const registerForm = document.getElementById("register-form");
+
+    if (registerForm) {
+        registerForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const fullName = document.getElementById("full-name").value.trim();
+            const email = document.getElementById("reg-email").value.trim();
+            const password = document.getElementById("reg-password").value;
+            const confirmPassword = document.getElementById("confirm-password").value;
+            const role = document.getElementById("reg-role").value;
+            const registerMessage = document.getElementById("register-message");
+
+            if (fullName === "" || email === "" || password === "" || role === "") {
+                registerMessage.textContent = "Please fill in all required fields.";
+                registerMessage.style.color = "#c0392b";
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                registerMessage.textContent = "Passwords do not match.";
+                registerMessage.style.color = "#c0392b";
+                return;
+            }
+
+            registerMessage.textContent = "Registration successful! You can now log in.";
+            registerMessage.style.color = "#27ae60";
+
+            setTimeout(function() {
+                window.location.href = "index.html";
+            }, 2000);
+        });
+    }
+
+const toggleButtons = document.querySelectorAll(".toggle-password");
+
+toggleButtons.forEach(function(toggle) {
+    toggle.addEventListener("click", function() {
+        const targetId = toggle.dataset.target;
+        const input = document.getElementById(targetId);
+
+        if (input.type === "password") {
+            input.type = "text";
+            toggle.textContent = "Hide";
+        } else {
+            input.type = "password";
+            toggle.textContent = "Show";
+        }
+    });
+});
+
+const profileForm = document.getElementById("profile-form");
+
+if (profileForm) {
+    profileForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const newPassword = document.getElementById("new-password").value;
+        const confirmNewPassword = document.getElementById("confirm-new-password").value;
+        const profileMessage = document.getElementById("profile-message");
+
+        if (newPassword !== "" && newPassword !== confirmNewPassword) {
+            profileMessage.textContent = "New Password do no match.";
+            profileMessage.style.color = "#c0392b";
+            return;
+        }
+
+        profileMessage.textContent = "Profile updated Successfully."
+        profileMessage.style.color = "#27ae60";
+    });
+}
+
+const profilePicInput = document.getElementById("profile-pic-input");
+
+if (profilePicInput) {
+    profilePicInput.addEventListener("change", function() {
+        const file = profilePicInput.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const preview = document.getElementById("profile-pic-preview");
+                const placeholder = document.getElementById("profile-pic-placeholder");
+                preview.src = event.target.result;
+                preview.style.display = "block";
+                placeholder.style.display = "none";
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
