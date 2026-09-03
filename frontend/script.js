@@ -321,3 +321,33 @@ if (verifyBtn) {
                 reviewForm.reset();
         });
     }
+
+    const categoryForm = document.getElementById("category-form");
+
+    if (categoryForm) {
+        const categoryList = document.getElementById("category-list");
+
+        categoryForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const nameInput = document.getElementById("category-name");
+            const name = nameInput.value.trim();
+
+            if (name === "") return;
+
+            const newRow = document.createElement("tr");
+            newRow.innerHTML = "<td>" + name + "</td>" + "<td>0</td>" + "<td><button class='category-delete-btn'>Delete</button></td>";
+            categoryList.appendChild(newRow);
+            attachCategoryDeleteEvent(newRow.querySelector(".category-delete-btn"));
+
+            nameInput.value = "";
+        });
+
+        function attachCategoryDeleteEvent(button) {
+            button.addEventListener("click", function() {
+                button.closest("tr").remove();
+            });
+        }
+
+        document.querySelectorAll(".category-delete-btn").forEach(attachCategoryDeleteEvent);
+    }

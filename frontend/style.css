@@ -454,3 +454,40 @@ tbody tr:hover {
     max-width: 500px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
+
+#category-form {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    max-width: 500px;
+    margin-bottom: 25px;
+    padding: 20px;
+}
+
+#category-form .form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+#category-form button {
+    background-color: #2c3e50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    height: 42px;
+}
+
+.category-delete-btn {
+    background-color: #c0392b;
+    color: white;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.category-delete-btn:hover {
+    background-color: #922b21;
+}
