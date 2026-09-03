@@ -130,7 +130,7 @@ if (quizForm) {
          }
         }, 1000);
 
-        quizform.addEventListener("submit", function(event) {
+        quizForm.addEventListener("submit", function(event) {
             event.preventDefault();
             clearInterval(timerInterval);
 
