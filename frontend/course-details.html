@@ -23,6 +23,43 @@
             <p id="course-rating">Rating</p>
             <p id="course-description">Description goes here.</p>
             <button>Enroll</button>
+            <div class="course-actions-links">
+                <a href="quiz.html"><button>Take Quiz</button></a>
+                <a href="assignment-submit.html"><button>Submit Assignment</button></a>      
+                <a href="certificate.html"><button>View Certificate</button></a>         
+            </div>
+            <section id="reviews-section">
+                <h2>Reviews &amp; Ratings</h2>
+
+                <div class="review-item">
+                    <p><strong>Meena Raj</strong> - 5/5</p>
+                    <p>Great course, very clear Explanations.</p>
+                </div>
+
+                <div class="review-item">
+                    <p><strong>Ravi Kumar</strong> - 4.5/5</p>
+                    <p>Good content, could use more examples.</p>
+                </div>
+                <h3>Leave a Review</h3>
+                <form id="review-form">
+                    <div class="form-group">
+                        <label for="review-rating">Rating</label>
+                        <select id="review-rating" required>
+                            <option value="">-- Select Rating --</option>
+                            <option value="1">1 - Very Poor</option>
+                            <option value="2">2 - Poor</option>
+                            <option value="3">3 - Average</option>
+                            <option value="4">4 - Good</option>
+                            <option value="5">5 - Excellent</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="review-text">Your Review</label>
+                        <textarea id="review-text" rows="3" required></textarea>    
+                    </div>
+                    <button type="submit">Submit Review</button>            
+                </form>
+            </section>
         </main>
         <script src="script.js"></script>
     </body>
