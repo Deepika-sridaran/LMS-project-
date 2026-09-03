@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LMS - Manage Course Content</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <nav>
+            <h2>LMS Trainer</h2>
+            <ul>
+                <li><a href="trainer-dashboard.html">Dashboard</a></li>
+                <li><a href="create-course.html">Create Course</a></li>
+                <li><a href="my-students.html">My Students</a></li>
+                <li><a href="evaluate-assignments.html">Evaluate</a></li>
+                <li><a href="trainer-profile.html">Profile</a></li>
+                <li><a href="manage-course-content.html">Course Content</a></li>
+            </ul>
+        </nav>
+        <main>
+            <h1>Manage Content: Python Programming for Beginners</h1>
+
+            <form id="add-module-form">
+                <div class="form-group">
+                    <label for="module-name">New Module Name</label>
+                    <input type="text" id="module-name" placeholder="e.g. Advanced Topics" required>
+                </div>
+                <button type="submit">Add Module</button>
+            </form>
+
+            <div id="module-list">
+                <div class="module-header">
+                    <h3>Module 1: Python Basics</h3>
+                    <button class="delete-module-btn">Delete Module</button>
+                </div>
+                <ul class="lesson-list">
+                    <li>Introduction to Python
+                        <button class="delete-lesson-btn">Remove</button>
+                    </li>
+                    <li>Variables and Data Types
+                        <button class="delete-lesson-btn">Remove</button>
+                    </li>
+                </ul>
+
+                <div class="add-lesson-row">
+                    <input type="text" class="new-lesson-input" placeholder="New lesson name">
+                    <button class="add-lesson-btn">Add Lesson</button>
+                </div>
+            </div>
+
+            <div class="module-block">
+                <div class="module-header">
+                    <h3>Module 2: Control Flow</h3>
+                    <button class="delete-module-btn">Delete Module</button>
+                </div>
+                <ul class="lesson-list">
+                    <li>Conditional Statements
+                        <button class="delete-lesson-btn">Remove</button>
+                    </li>
+                    <li>Loops
+                        <button class="delete-lesson-btn">Remove</button>
+                    </li>
+                </ul>
+                <div class="add-lesson-row">
+                    <input type="text" class="new-lesson-input" placeholder="New lesson name">
+                    <button class="add-lesson-btn">Add Lesson</button>
+                </div>
+            </div>
+        </main>
+        <script src="script.js"></script>
+    </body>
+</html>

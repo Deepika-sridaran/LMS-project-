@@ -443,3 +443,83 @@ if (profilePicInput) {
         }
     });
 }
+
+const addModuleForm = document.getElementById("add-module-form");
+
+if (addModuleForm) {
+    const moduleList = document.getElementById("module-list");
+
+    // Adding a new lesson to a module (works for existing AND newly-added modules)
+    function attachAddLessonEvent(button) {
+        button.addEventListener("click", function() {
+            const moduleBlock = button.closest(".module-block");
+            const input = moduleBlock.querySelector(".new-lesson-input");
+            const lessonName = input.value.trim();
+
+            if (lessonName === "") return;
+
+            const newLesson = document.createElement("li");
+            newLesson.innerHTML = lessonName + " <button class='delete-lesson-btn'>Remove</button>";
+
+            moduleBlock.querySelector(".lesson-list").appendChild(newLesson);
+            attachDeleteLessonEvent(newLesson.querySelector(".delete-lesson-btn"));
+
+            input.value = "";
+        });
+    }
+
+    // Deleting a single lesson
+    function attachDeleteLessonEvent(button) {
+        button.addEventListener("click", function() {
+            button.closest("li").remove();
+        });
+    }
+
+    // Deleting an entire module
+    function attachDeleteModuleEvent(button) {
+        button.addEventListener("click", function() {
+            const moduleBlock = button.closest(".module-block");
+            const confirmed = confirm("Delete this entire module and all its lessons?");
+            if (confirmed) {
+                moduleBlock.remove();
+            }
+        });
+    }
+
+    // Wire up all buttons that already exist on page load
+    document.querySelectorAll(".add-lesson-btn").forEach(attachAddLessonEvent);
+    document.querySelectorAll(".delete-lesson-btn").forEach(attachDeleteLessonEvent);
+    document.querySelectorAll(".delete-module-btn").forEach(attachDeleteModuleEvent);
+
+    // Adding a brand new module
+    addModuleForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const moduleNameInput = document.getElementById("module-name");
+        const moduleName = moduleNameInput.value.trim();
+
+        if (moduleName === "") return;
+
+        const moduleCount = document.querySelectorAll(".module-block").length + 1;
+
+        const newModule = document.createElement("div");
+        newModule.className = "module-block";
+        newModule.innerHTML =
+            "<div class='module-header'>" +
+                "<h3>Module " + moduleCount + ": " + moduleName + "</h3>" +
+                "<button class='delete-module-btn'>Delete Module</button>" +
+            "</div>" +
+            "<ul class='lesson-list'></ul>" +
+            "<div class='add-lesson-row'>" +
+                "<input type='text' class='new-lesson-input' placeholder='New lesson name'>" +
+                "<button class='add-lesson-btn'>Add Lesson</button>" +
+            "</div>";
+
+        moduleList.appendChild(newModule);
+
+        attachAddLessonEvent(newModule.querySelector(".add-lesson-btn"));
+        attachDeleteModuleEvent(newModule.querySelector(".delete-module-btn"));
+
+        moduleNameInput.value = "";
+    });
+}

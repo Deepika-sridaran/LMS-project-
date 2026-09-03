@@ -578,3 +578,84 @@ tbody tr:hover {
 .upload-label:hover {
     background-color: #1a252f;
 }
+
+.module-block {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    max-width: 600px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.delete-module-btn {
+    background-color: #c0392b;
+    color: white;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.delete-module-btn:hover {
+    background-color: #922b21;
+}
+
+.lesson-list {
+    list-style: none;
+    margin-bottom: 15px;
+}
+
+.lesson-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.delete-lesson-btn {
+    background-color: #7f8c8d;
+    color: white;
+    padding: 4px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.delete-lesson-btn:hover {
+    background-color: #626567;
+}
+
+.add-lesson-row {
+    display: flex;
+    gap: 10px;
+}
+
+.add-lesson-row input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.add-lesson-btn {
+    background-color: #2980b9;
+    color: white;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.add-lesson-btn:hover {
+    background-color: #21618c;
+}
