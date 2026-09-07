@@ -523,3 +523,89 @@ if (addModuleForm) {
         moduleNameInput.value = "";
     });
 }
+
+const addQuestionBtn = document.getElementById("add-question-btn");
+
+if (addQuestionBtn) {
+    const questionList = document.getElementById("question-list");
+
+    function attachRemoveQuestionEvent(button) {
+        button.addEventListener("click", function() {
+            const totalQuestions = document.querySelectorAll(".question-block").length;
+            if (totalQuestions <= 1) {
+                alert("A quiz must have at least one question.");
+                return;
+            }
+            button.closest(".question-block").remove();
+        });
+    }
+
+    document.querySelectorAll(".remove-question-btn").forEach(attachRemoveQuestionEvent);
+
+    addQuestionBtn.addEventListener("click", function() {
+        const newQuestion = document.createElement("div");
+        newQuestion.className = "question-block";
+        newQuestion.innerHTML = 
+        "<div class = 'form-group'>" +
+        "<label>Question Text</label>" + 
+        "<input type='text' class='question-text' placeholder='Enter the question'>" +
+        "</div>" +
+        "<div class='option-grid'>" +
+        "<input type='text' class='option-input' placeholder='Option A'>" +
+        "<input type='text' class='option-input' placeholder='Option B'>" +
+        "<input type='text' class='option-input' placeholder='Option C'>" +
+        "<input type='text' class='option-input' placeholder='Option D'>" +
+        "</div>" +
+        "<div class='form-group'>" +
+        "<label>Correct Option</label>" +
+        "<select class='correct-option'>" +
+        "<option value='A'>A</option>" +
+        "<option value='B'>B</option>" +
+        "<option value='C'>C</option>" +
+        "<option value='D'>D</option>" +
+        "</select>" +
+        "<div>" +
+        "<button class='remove-question-btn'>Remove Question</button>";
+
+        questionList.appendChild(newQuestion);
+        attachRemoveQuestionEvent(newQuestion.querySelector(".remove-question-btn"));
+    });
+
+    const saveQuizBtn = document.getElementById("save-quiz-btn");
+    const quizMessage = document.getElementById("quiz-save-message");
+
+    saveQuizBtn.addEventListener("click", function() {
+        const quizTitle = document.getElementById("quiz-title").value.trim();
+
+        if (quizTitle === "") {
+                quizMessage.textContent = "Please enter a quiz title.";
+                quizMessage.style.color = "#c0392b";
+                return;
+        }
+
+        const questionBlocks = document.querySelectorAll(".question-block");
+        let allQuestionsFilled = true;
+
+        questionBlocks.forEach(function(block) {
+            const questionText = block.querySelector(".question-text").value.trim();
+            const options = block.querySelectorAll(".option-input");
+            let optionsFilled = true;
+
+            options.forEach(function(option) {
+                if (option.value.trim() === "") optionsFilled = false;
+            });
+
+            if (questionText === "" || !optionsFilled) {
+                allQuestionsFilled = false;
+            }
+        });
+
+        if (!allQuestionsFilled) {
+            quizMessage.textContent = "Please fill in all questions and their 4 options before saving.";
+            quizMessage.style.color = "#c0392b";
+            return;
+        }
+        quizMessage.textContent = "Quiz saved successfully with " + questionBlocks.length + "question(s)!";
+        quizMessage.style.color = "#27ae60";
+    });
+}
