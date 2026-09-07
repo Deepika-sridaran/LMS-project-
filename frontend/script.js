@@ -211,35 +211,38 @@ const userEditButtons = document.querySelectorAll(".user-edit-btn");
 const userSuspendButtons = document.querySelectorAll(".user-suspend-btn");
 const userReactivateButtons = document.querySelectorAll(".user-reactivate-btn");
 
-userEditButtons.forEach(function(button) {
+document.querySelectorAll(".user-edit-btn").forEach(function(button) {
     button.addEventListener("click", function() {
         const row = button.closest("tr");
-        const name = row.querySelector("td").textcontent;
+        const name = row.querySelector("td").textContent;
         alert("Edit user: " + name);
     });
 });
 
-userSuspendButtons.forEach(function(button) {
+document.querySelectorAll(".user-suspend-btn, .user-reactivate-btn").forEach(function(button) {
     button.addEventListener("click", function() {
         const row = button.closest("tr");
         const name = row.querySelector("td").textContent;
         const statusCell = row.querySelector(".status-badge");
-        statusCell.textContent = "Suspended";
-        statusCell.classList.remove("status-published");
-        statusCell.classList.add("status-pending");
-        alert(name + " has been suspended.");
-    });
-});
+        const isSuspending = button.classList.contains("user-suspend-btn");
 
-userReactivateButtons.forEach(function(button) {
-    button.addEventListener("click", function() {
-        const row = button.closest("tr");
-        const name = row.querySelector("td").textContent;
-        const statusCell = row.querySelector(".status-badge");
-        statusCell.textContent = "Active";
-        statusCell.classList.remove("status-pending");
-        statusCell.classList.add("status-published");
-        alert(name + " has been reactivated.");
+        if (isSuspending) {
+            statusCell.textContent = "Suspended";
+            statusCell.classList.remove("status-published");
+            statusCell.classList.add("status-pending");
+            button.textContent = "Reactivate";
+            button.classList.remove("user-suspend-btn");
+            button.classList.add("user-reactivate-btn");
+            alert(name + " has been suspended.");
+        } else {
+            statusCell.textContent = "Active";
+            statusCell.classList.remove("status-pending");
+            statusCell.classList.add("status-published");
+            button.textContent = "Suspend";
+            button.classList.remove("user-reactivate-btn");
+            button.classList.add("user-suspend-btn");
+            alert(name + " has been reactivated.");
+        }
     });
 });
 
@@ -607,5 +610,59 @@ if (addQuestionBtn) {
         }
         quizMessage.textContent = "Quiz saved successfully with " + questionBlocks.length + "question(s)!";
         quizMessage.style.color = "#27ae60";
+    });
+}
+
+const createAssignmentForm = document.getElementById("create-assignment-form");
+
+if (createAssignmentForm) {
+    createAssignmentForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const title = document.getElementById("assignment-title").value.trim();
+        const module = document.getElementById("assignment-module").value;
+        const description = document.getElementById("assignment-description").value.trim();
+        const deadline = document.getElementById("assignment-deadline").value;
+        const message = document.getElementById("assingment-create-message");
+
+        if (title === "" || module === "" || description === "" || deadline == "") {
+            message.textContent = "Please fill in all required fields";
+            message.style.color = "#c0392b";
+            return;
+        }
+
+        const deadlineDate = new Date(deadline);
+        const now = new Date();
+
+        if (deadlineDate <= now) {
+            message.textContent = "Deadline must be a future Date and Time";
+            message.style.color = "#c0392b";
+            return;
+        }
+
+        message.textContent = "Assingment \"" + title + "\" created successfully!";
+        message.style.color = "#27ae60";
+
+        createAssignmentForm.reset();
+    });
+}
+
+const forgetPasswordForm = document.getElementById("forget-password-form");
+
+if (forgetPasswordForm) {
+    forgetPasswordForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const email = document.getElementById("forget-email").value.trim();
+        const message = document.getElementById("forget-password-message");
+
+        if (email === "") {
+            message.textContent = "Please Enter Your Email";
+            message.style.color = "#c0392b";
+            return;
+        }
+
+        message.textContent = "If that email is registered, a reset link has been sent.";
+        message.style.color = "#27ae60";
     });
 }
