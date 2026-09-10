@@ -1,0 +1,50 @@
+from extensions import db
+
+
+class QuizAttempt(db.Model):
+    __tablename__ = "quiz_attempts"
+
+    attempt_id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    quiz_id = db.Column(
+        db.Integer,
+        nullable=False
+    )
+
+    student_id = db.Column(
+        db.Integer,
+        nullable=False
+    )
+
+    attempt_number = db.Column(
+        db.Integer,
+        nullable=False
+    )
+
+    started_at = db.Column(
+        db.DateTime,
+        nullable=True
+    )
+
+    submitted_at = db.Column(
+        db.DateTime,
+        nullable=True
+    )
+
+    score = db.Column(
+        db.Numeric(5, 2),
+        nullable=True
+    )
+
+    status = db.Column(
+        db.String(20),
+        default="IN_PROGRESS"
+    )
+
+    passed = db.Column(
+        db.Boolean,
+        nullable=True
+    )

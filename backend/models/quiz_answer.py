@@ -1,0 +1,30 @@
+from extensions import db
+
+
+class QuizAnswer(db.Model):
+    __tablename__ = "quiz_answers"
+
+    answer_id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    attempt_id = db.Column(
+        db.Integer,
+        nullable=False
+    )
+
+    question_id = db.Column(
+        db.Integer,
+        nullable=False
+    )
+
+    selected_answer = db.Column(
+        db.String(1),
+        nullable=False
+    )
+
+    marks_awarded = db.Column(
+        db.Numeric(5, 2),
+        nullable=True
+    )
