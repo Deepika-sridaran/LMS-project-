@@ -169,7 +169,7 @@ if (assignmentForm) {
     });
 }
 
-const downloadBtn = document.getElementById("download-btn");
+const downloadBtn = document.getElementById("download-cert-btn");
 
 if (downloadBtn) {
     downloadBtn.addEventListener("click", function() {
