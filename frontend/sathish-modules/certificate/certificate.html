@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Course Certificate</title>
+
+    <link rel="stylesheet" href="certificate.css">
+</head>
+
+<body>
+
+    <div class="certificate">
+
+        <h1>Certificate of Completion</h1>
+
+        <p class="subtitle">This certificate is proudly presented to</p>
+
+        <h2 id="studentName">Loading...</h2>
+
+        <p>for successfully completing</p>
+
+        <h3 id="courseName">Loading...</h3>
+
+        <p class="completion"> </p>
+
+        <div class="details">
+
+            <div>
+                <strong>Progress</strong>
+                <span id="progress">--</span>
+            </div>
+
+            <div>
+                <strong>Assessment</strong>
+                <span id="assessment">--</span>
+            </div>
+
+            <div>
+                <strong>Certificate No.</strong>
+                <span id="certificateNumber">--</span>
+            </div>
+
+            <div>
+                <strong>Issued Date</strong>
+                <span id="issuedDate">--</span>
+            </div>
+
+        </div>
+
+        <p id="status" class="status"></p>
+
+        <button onclick="window.print()">Print Certificate</button>
+
+    </div>
+
+    <script src="certificate.js"></script>
+
+</body>
+</html>
