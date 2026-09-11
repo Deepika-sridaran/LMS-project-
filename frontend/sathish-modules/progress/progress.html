@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Course Progress</title>
+
+    <link rel="stylesheet" href="progress.css">
+</head>
+
+<body>
+
+    <div class="progress-container">
+
+        <h1>My Course Progress</h1>
+
+    
+        <h2 id="studentName">Loading...</h2>
+
+      
+        <h3 id="courseName">Loading...</h3>
+
+        <div class="progress-box">
+
+            <div class="progress-info">
+                <span>Course Progress</span>
+                <span id="progressPercentage">0%</span>
+            </div>
+
+            <div class="progress-bar">
+                <div id="progressBar"></div>
+            </div>
+
+        </div>
+
+        <div class="details">
+
+            <div class="detail-box">
+                <strong>Total Lessons</strong>
+                <span id="totalLessons">0</span>
+            </div>
+
+            <div class="detail-box">
+                <strong>Completed Lessons</strong>
+                <span id="completedLessons">0</span>
+            </div>
+
+            <div class="detail-box">
+                <strong>Remaining Lessons</strong>
+                <span id="remainingLessons">0</span>
+            </div>
+
+            <div class="detail-box">
+                <strong>Assessment Score</strong>
+                <span id="assessmentScore">--</span>
+            </div>
+
+        </div>
+
+        <div id="status" class="status">
+           
+        </div>
+
+    </div>
+
+    <script src="progress.js"></script>
+
+</body>
+
+</html>
