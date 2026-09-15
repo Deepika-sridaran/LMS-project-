@@ -1,28 +1,39 @@
-from routes.user_routes import user_bp
-from routes.auth_routes import auth_bp
 from flask import Flask
 from flask_cors import CORS
 
 from config import Config
 from extensions import db, bcrypt, jwt, migrate
+from routes.auth_routes import auth_bp
+from routes.user_routes import user_bp
+from routes.category_routes import category_bp
 
 
 def create_app():
     app = Flask(__name__)
 
-    # Load configuration
     app.config.from_object(Config)
 
-    # Initialize extensions
     db.init_app(app)
     bcrypt.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
 
-    # Enable frontend access
     CORS(app)
-    app.register_blueprint(auth_bp, url_prefix="/api/auth")
-    app.register_blueprint(user_bp, url_prefix="/api/users")
+
+    app.register_blueprint(
+        auth_bp,
+        url_prefix="/api/auth"
+    )
+
+    app.register_blueprint(
+        user_bp,
+        url_prefix="/api/users"
+    )
+
+    app.register_blueprint(
+        category_bp,
+        url_prefix="/api/categories"
+    )
 
     @app.route("/")
     def home():
@@ -34,9 +45,7 @@ def create_app():
     @app.route("/database-test")
     def database_test():
         try:
-            db.session.execute(
-                db.text("SELECT 1")
-            )
+            db.session.execute(db.text("SELECT 1"))
 
             return {
                 "success": True,
