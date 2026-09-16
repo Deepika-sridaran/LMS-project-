@@ -1,4 +1,5 @@
 import os
+from urllib.parse import quote_plus
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -7,9 +8,11 @@ load_dotenv()
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY")
 
+    DB_PASSWORD_ENCODED = quote_plus(os.getenv("DB_PASSWORD"))
+
     SQLALCHEMY_DATABASE_URI = (
         f"mysql+pymysql://{os.getenv('DB_USERNAME')}:"
-        f"{os.getenv('DB_PASSWORD')}@"
+        f"{DB_PASSWORD_ENCODED}@"
         f"{os.getenv('DB_HOST')}:"
         f"{os.getenv('DB_PORT')}/"
         f"{os.getenv('DB_NAME')}"
