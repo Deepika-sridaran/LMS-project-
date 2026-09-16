@@ -180,71 +180,188 @@ if (downloadBtn) {
 const loginForm = document.getElementById("login-form");
 
 if (loginForm) {
-    loginForm.addEventListener("submit", function(event) {
+    loginForm.addEventListener("submit", async function(event) {
         event.preventDefault();
 
         const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value.trim();
-        const role = document.getElementById("role").value;
         const loginMessage = document.getElementById("login-message");
 
-        if (email === "" || password === "" || role === "") {
-            loginmessage.textContent = "Please fill in all fields.";
+        if (email === "" || password === "") {
+            loginMessage.textContent = "Please fill in all fields.";
             loginMessage.style.color = "#c0392b";
             return;
         }
 
-        // Temporary: no backend yet, so we redirect purely based on selected role.
-        // Later, this whole block gets replaced by an actual API call to
-        // POST /api/auth/login, and the role comes back from the server's response.
-        if (role === "student") {
-            window.location.href = "dashboard.html";
-        } else if (role === "trainer") {
-            window.location.href = "trainer-dashboard.html";
-        } else if (role === "admin") {
-            window.location.href = "admin-dashboard.html";
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.setItem("access_token", data.access_token);
+                localStorage.setItem("user_full_name", data.user.full_name);
+                localStorage.setItem("user_role", data.user.role);
+
+                loginMessage.textContent = "Login successful! Redirecting...";
+                loginMessage.style.color = "#27ae60";
+
+                const role = data.user.role;
+
+                if (role === "Student") {
+                    window.location.href = "dashboard.html";
+                } else if (role === "Trainer") {
+                    window.location.href = "trainer-dashboard.html";
+                } else if (role === "Administrator") {
+                    window.location.href = "admin-dashboard.html";
+                }
+            } else {
+                loginMessage.textContent = data.message || "Login failed. Please try again.";
+                loginMessage.style.color = "#c0392b";
+            }
+        } catch (error) {
+            loginMessage.textContent = "Could not reach the server. Is the backend running?";
+            loginMessage.style.color = "#c0392b";
         }
     });
 }
 
-const userEditButtons = document.querySelectorAll(".user-edit-btn");
-const userSuspendButtons = document.querySelectorAll(".user-suspend-btn");
-const userReactivateButtons = document.querySelectorAll(".user-reactivate-btn");
+const usersTableBody = document.getElementById("users-table-body");
 
-document.querySelectorAll(".user-edit-btn").forEach(function(button) {
-    button.addEventListener("click", function() {
-        const row = button.closest("tr");
-        const name = row.querySelector("td").textContent;
-        alert("Edit user: " + name);
-    });
-});
+if (usersTableBody) {
+    const token = localStorage.getItem("access_token");
 
-document.querySelectorAll(".user-suspend-btn, .user-reactivate-btn").forEach(function(button) {
-    button.addEventListener("click", function() {
-        const row = button.closest("tr");
-        const name = row.querySelector("td").textContent;
-        const statusCell = row.querySelector(".status-badge");
-        const isSuspending = button.classList.contains("user-suspend-btn");
+    if (!token) {
+        window.location.href = "index.html";
+    }
 
-        if (isSuspending) {
-            statusCell.textContent = "Suspended";
-            statusCell.classList.remove("status-published");
-            statusCell.classList.add("status-pending");
-            button.textContent = "Reactivate";
-            button.classList.remove("user-suspend-btn");
-            button.classList.add("user-reactivate-btn");
-            alert(name + " has been suspended.");
-        } else {
-            statusCell.textContent = "Active";
-            statusCell.classList.remove("status-pending");
-            statusCell.classList.add("status-published");
-            button.textContent = "Suspend";
-            button.classList.remove("user-reactivate-btn");
-            button.classList.add("user-suspend-btn");
-            alert(name + " has been reactivated.");
+    function statusClass(status) {
+        if (status === "ACTIVE") return "status-published";
+        if (status === "SUSPENDED") return "status-pending";
+        return "status-draft";
+    }
+
+    function renderUsers(users) {
+        usersTableBody.innerHTML = "";
+
+        users.forEach(function(user) {
+            const row = document.createElement("tr");
+            row.dataset.userId = user.user_id;
+
+            const toggleLabel = user.status === "ACTIVE" ? "Suspend" : "Reactivate";
+            const toggleClass = user.status === "ACTIVE" ? "user-suspend-btn" : "user-reactivate-btn";
+
+            row.innerHTML =
+            "<td>" + user.full_name + "</td>" +
+            "<td>" + user.email + "</td>" +
+            "<td>" + user.role + "</td>" +
+            "<td><span class='status-badge " + statusClass(user.status) + "'>" + user.status + "</span></td>" +
+            "<td>" +
+                "<button class='user-edit-btn'>Edit</button> " +
+                "<button class='" + toggleClass + "'>" + toggleLabel + "</button>" +
+            "</td>";
+
+            usersTableBody.appendChild(row);
+        });
+        attachUserButtonEvents();
+    }
+
+    async function loadUsers() {
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/users", {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                renderUsers(data.users);
+            } else {
+                usersTableBody.innerHTML = "<tr><td> colspan='5'>" + (data.message || "Could not load users.") + "</td></tr>";
+            }
+        } catch (error) {
+            usersTableBody.innerHTML = "<tr><td colspan='5'>Could not reach the server.</td></tr>";
         }
-    });
-});
+    }
+
+    async function updateUserStatus(userId, newStatus) {
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/users/" + userId, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({ status: newStatus})
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                loadUsers();
+            } else {
+                alert(data.message || "Update failed.");
+            }
+        } catch (error) {
+            alert("Could not reach the server.");
+        }
+    }
+
+    function attachUserButtonEvents() {
+        document.querySelectorAll(".user-edit-btn").forEach(function(button) {
+            button.addEventListener("click", function() {
+                const row = button.closest("tr");
+                const userId = row.dataset.userId;
+                const currentName = row.children[0].textContent;
+                const currentEmail = row.children[1].textContent;
+
+                const newName = prompt("FUll Name:", currentName);
+                if (newName === null) return;
+
+                const newEmail = prompt("Email:", currentEmail);
+                if (newEmail === null) return;
+
+                fetch("http://127.0.0.1:5000/api/users/" + userId, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    },
+                    body: JSON.stringify({full_name: newName, email: newEmail })
+                })
+                .then(function(response) { return response.json(); })
+                .then(function() { loadUsers(); });
+            });
+        });
+
+        document.querySelectorAll(".user-suspend-btn").forEach(function(button) {
+            button.addEventListener("click", function() {
+                const userId = button.closest("tr").dataset.userId;
+                updateUserStatus(userId, "SUSPENDED");
+            });
+        });
+
+        document.querySelectorAll(".user-reactivate-btn").forEach(function(button) {
+            button.addEventListener("click", function(){
+                const userId = button.closest("tr").dataset.userId;
+                updateUserStatus(userId, "ACTIVE");
+            });
+        });
+    }
+    loadUsers();
+}
 
 const courseEditButtons = document.querySelectorAll(".course-edit-btn");
 const courseDeleteButtons = document.querySelectorAll(".course-delete-btn");
@@ -325,40 +442,165 @@ if (verifyBtn) {
         });
     }
 
-    const categoryForm = document.getElementById("category-form");
+    const categoryList = document.getElementById("category-list");
 
-    if (categoryForm) {
-        const categoryList = document.getElementById("category-list");
+    if (categoryList) {
+        const token = localStorage.getItem("access_token");
+        const categoryForm = document.getElementById("category-form");
+        const categoryMessage = document.getElementById("category-message");
 
-        categoryForm.addEventListener("submit", function(event) {
-            event.preventDefault();
+        function renderCategories(categories) {
+            categoryList.innerHTML = "";
 
-            const nameInput = document.getElementById("category-name");
-            const name = nameInput.value.trim();
+            categories.forEach(function(category) {
+                const row = document.createElement("tr");
+                row.dataset.categoryId = category.category_id;
 
-            if (name === "") return;
+                row.innerHTML = 
+                "<td>" + category.category_name + "</td>" +
+                "<td>" + (category.description || "-") + "</td>" +
+                "<td>" +
+                    "<button class='category-edit-btn'>Edit</button> " +
+                    "<button class='category-delete-btn>Delete</button>" +
+                "</td>;"
 
-            const newRow = document.createElement("tr");
-            newRow.innerHTML = "<td>" + name + "</td>" + "<td>0</td>" + "<td><button class='category-delete-btn'>Delete</button></td>";
-            categoryList.appendChild(newRow);
-            attachCategoryDeleteEvent(newRow.querySelector(".category-delete-btn"));
+                categoryList.appendChild(row);
+            });
+            attachCategoryButtonEvents();
+        }
 
-            nameInput.value = "";
-        });
+        async function loadCategories() {
+            try {
+                const response = await fetch("http://127.0.0.1:5000/api/categories");
+                const data = await response.json();
 
-        function attachCategoryDeleteEvent(button) {
-            button.addEventListener("click", function() {
-                button.closest("tr").remove();
+                if (response.ok) {
+                    renderCategories(data.categories);
+                } else {
+                    categoryList.innerHTML = "<tr><td> colspan='3'>Could not load categories.</td></tr>";
+                }
+            } catch (error) {
+                categoryList.innerHTML = "<tr><td colspan='3'>Could not reach the server.</td></tr>";
+            }
+        }
+
+        function attachCategoryButtonEvents() {
+            document.querySelectorAll(".category-edit-btn").forEach(function(button) {
+                button.addEventListener("click", async function() {
+                    const row = button.closest("tr");
+                    const categoryId = row.dataset.categoryId;
+                    const currentName = row.children[0].textContent;
+                    const currentDescription = row.children[1].textContent;
+
+                    const newName = prompt("Category Name:", currentName);
+                    if (newName === null) return;
+
+                    const newDescription = prompt("Description:", currentDescription === "-" ? "" : currentDescription);
+                    if (newDescription === null) return;
+
+                    try {
+                        const response = await fetch("http://127.0.0.1:5000/api/categories/" + categoryId, {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Authorization": "Bearer " + token
+                            },
+                            body: JSON.stringify({
+                                category_name: newName,
+                                description: newDescription
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            loadCategories();
+                        } else {
+                            alert(data.message || "Update failed.");
+                        }
+                    } catch (error) {
+                        alert("Could not reach the server.");
+                    }
+                });
+            });
+
+            document.querySelectorAll(".category-delete-btn").forEach(function(button) {
+                button.addEventListener("click", async function() {
+                    const row = button.closest("tr");
+                    const categoryId = row.dataset.categoryId;
+                    const categoryName = row.children[0].textContent;
+
+                    const confirmed = confirm("Delete category \"" + categoryName + "\"?");
+                    if (!confirmed) return;
+
+                    try {
+                        const response = await fetch("http://127.0.0.1:5000/api/categories/" + categoryId, {
+                            method: "DELETE",
+                            headers: {
+                                "Authorization": "Bearer " + token
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            loadCategories();
+                        } else {
+                            alert(data.message || "Delete failed.");
+                        }
+                    } catch (error) {
+                        alert ("Could not reach the server.");
+                    }
+                });
             });
         }
 
-        document.querySelectorAll(".category-delete-btn").forEach(attachCategoryDeleteEvent);
+        categoryForm.addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const nameInput = document.getElementById("category-name");
+            const descriptionInput = document.getElementById("category-description");
+            const name = nameInput.value.trim();
+            const description = descriptionInput.value.trim();
+
+            if (name === "") return;
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/api/categories", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    },
+                    body: JSON.stringify({
+                        category_name: name,
+                        description: description
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    nameInput.value = "";
+                    descriptionInput.value = "";
+                    categoryMessage.textContent = "";
+                    loadCategories();
+                } else {
+                    categoryMessage.textContent = data.message || "Could not create category.";
+                    categoryMessage.style.color = "#c0392b";
+                }
+            } catch (error) {
+                categoryMessage.textContent = "Could not reach the server.";
+                categoryMessage.style.color = "#c0392b";
+            }
+        });
+        loadCategories();
     }
 
     const registerForm = document.getElementById("register-form");
 
     if (registerForm) {
-        registerForm.addEventListener("submit", function(event) {
+        registerForm.addEventListener("submit", async function(event) {
             event.preventDefault();
 
             const fullName = document.getElementById("full-name").value.trim();
@@ -380,12 +622,37 @@ if (verifyBtn) {
                 return;
             }
 
-            registerMessage.textContent = "Registration successful! You can now log in.";
-            registerMessage.style.color = "#27ae60";
+            try {
+                const response = await fetch("http://127.0.0.1:5000/api/auth/register", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        full_name: fullName,
+                        email: email,
+                        password: password,
+                        confirm_password: confirmPassword,
+                        role: role.charAt(0).toUpperCase() + role.slice(1)
+                    })
+                });
 
-            setTimeout(function() {
-                window.location.href = "index.html";
-            }, 2000);
+                const data = await response.json();
+
+                if (response.ok) {
+                    registerMessage.textContent = "Registration successful! You can now Log in.";
+                    registerMessage.style.color = "#27ae60";
+                    setTimeout(function () {
+                        window.location.href = "index.html";
+                    }, 2000);
+                } else {
+                    registerMessage.textContent = data.message || "Registration failed. Please try again.";
+                    registerMessage.style.color = "#c0392b";
+                }
+            } catch (error) {
+                registerMessage.textContent = "Could not reach the server. Is the backend running?";
+                registerMessage.style.color = "#c0392b";
+            }
         });
     }
 
@@ -409,21 +676,67 @@ toggleButtons.forEach(function(toggle) {
 const profileForm = document.getElementById("profile-form");
 
 if (profileForm) {
-    profileForm.addEventListener("submit", function(event) {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+        window.location.href = "index.html";
+    } else {
+        // Load the real profile data when the page opens
+        (async function loadProfile() {
+            try {
+                const response = await fetch("http://127.0.0.1:5000/api/auth/profile", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById("profile-name").value = data.user.full_name;
+                    document.getElementById("profile-email").value = data.user.email;
+                    document.getElementById("profile-role").value = data.user.role;
+                }
+            } catch (error) {
+                console.log("Could not load Profile: ", error);
+            }
+        })();
+    }
+    profileForm.addEventListener("submit", async function(event) {
         event.preventDefault();
 
-        const newPassword = document.getElementById("new-password").value;
-        const confirmNewPassword = document.getElementById("confirm-new-password").value;
+        const fullName = document.getElementById("profile-name").value.trim();
+        const email = document.getElementById("profile-email").value.trim();
         const profileMessage = document.getElementById("profile-message");
 
-        if (newPassword !== "" && newPassword !== confirmNewPassword) {
-            profileMessage.textContent = "New Password do no match.";
-            profileMessage.style.color = "#c0392b";
-            return;
-        }
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/auth/profile", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({
+                    full_name: fullName,
+                    email: email
+                })
+            });
 
-        profileMessage.textContent = "Profile updated Successfully."
-        profileMessage.style.color = "#27ae60";
+            const data = await response.json();
+
+            if (response.ok) {
+                profileMessage.textContent = "Profile updated Successfully!";
+                profileMessage.style.color = "#27ae60";
+                localStorage.setItem("user_full_name", data.user.full_name);
+            } else {
+                profileMessage.textContent = data.message || "Update failed.";
+                profileMessage.style.color = "#c0392b";
+            }
+        } catch (error) {
+            profileMessage.textContent = "Could not reach the server.";
+            profileMessage.style.color = "#c0392b";
+        }
     });
 }
 
