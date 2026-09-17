@@ -27,6 +27,16 @@
             <input type="text" id="quiz-title" placeholder="e.g. Python Basics Quiz" required>
         </div>
 
+        <div class="form-group">
+            <label for="quiz-module">Module (Optional)</label>
+            <select id="quiz-module">
+                <option value="">-- None --</option>
+                <option value="1">Module 1: Python Basics</option>
+                <option value="2">Module 2: Control Flow</option>
+                <option value="3">Module 3: Functions</option>
+            </select>
+        </div>
+
         <div class="quiz-settings-row">
             <div class="form-group">
                 <label for="quiz-time-limit">Time Limit (Minutes)</label>
@@ -58,8 +68,9 @@
                     <input type="text" class="option-input" placeholder="Option C">
                     <input type="text" class="option-input" placeholder="Option D">                    
                 </div>
+            <div class="quiz-settings-row">
                 <div class="form-group">
-                    <label >COrrect Option</label>
+                    <label >Correct Option</label>
                     <select class="correct-option">
                         <option value="A">A</option>
                         <option value="B">B</option>
@@ -67,6 +78,11 @@
                         <option value="D">D</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label>Marks</label>
+                    <input type="number" class="question-marks" value="5" min="1">
+                </div>
+            </div>
                 <button class="remove-question-btn">Remove Question</button>
             </div>
         </div>

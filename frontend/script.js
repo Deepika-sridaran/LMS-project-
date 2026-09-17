@@ -461,8 +461,8 @@ if (verifyBtn) {
                 "<td>" + (category.description || "-") + "</td>" +
                 "<td>" +
                     "<button class='category-edit-btn'>Edit</button> " +
-                    "<button class='category-delete-btn>Delete</button>" +
-                "</td>;"
+                    "<button class='category-delete-btn'>Delete</button> " +
+                "</td>";
 
                 categoryList.appendChild(row);
             });
@@ -843,6 +843,9 @@ if (addModuleForm) {
 const addQuestionBtn = document.getElementById("add-question-btn");
 
 if (addQuestionBtn) {
+    const token = localStorage.getItem("access_token");
+    const courseId = 1; // Temporary: same hardcoded course as assignments
+
     const questionList = document.getElementById("question-list");
 
     function attachRemoveQuestionEvent(button) {
@@ -861,27 +864,33 @@ if (addQuestionBtn) {
     addQuestionBtn.addEventListener("click", function() {
         const newQuestion = document.createElement("div");
         newQuestion.className = "question-block";
-        newQuestion.innerHTML = 
-        "<div class = 'form-group'>" +
-        "<label>Question Text</label>" + 
-        "<input type='text' class='question-text' placeholder='Enter the question'>" +
-        "</div>" +
-        "<div class='option-grid'>" +
-        "<input type='text' class='option-input' placeholder='Option A'>" +
-        "<input type='text' class='option-input' placeholder='Option B'>" +
-        "<input type='text' class='option-input' placeholder='Option C'>" +
-        "<input type='text' class='option-input' placeholder='Option D'>" +
-        "</div>" +
-        "<div class='form-group'>" +
-        "<label>Correct Option</label>" +
-        "<select class='correct-option'>" +
-        "<option value='A'>A</option>" +
-        "<option value='B'>B</option>" +
-        "<option value='C'>C</option>" +
-        "<option value='D'>D</option>" +
-        "</select>" +
-        "<div>" +
-        "<button class='remove-question-btn'>Remove Question</button>";
+        newQuestion.innerHTML =
+            "<div class='form-group'>" +
+                "<label>Question Text</label>" +
+                "<input type='text' class='question-text' placeholder='Enter the question'>" +
+            "</div>" +
+            "<div class='options-grid'>" +
+                "<input type='text' class='option-input' placeholder='Option A'>" +
+                "<input type='text' class='option-input' placeholder='Option B'>" +
+                "<input type='text' class='option-input' placeholder='Option C'>" +
+                "<input type='text' class='option-input' placeholder='Option D'>" +
+            "</div>" +
+            "<div class='quiz-settings-row'>" +
+                "<div class='form-group'>" +
+                    "<label>Correct Option</label>" +
+                    "<select class='correct-option'>" +
+                        "<option value='A'>A</option>" +
+                        "<option value='B'>B</option>" +
+                        "<option value='C'>C</option>" +
+                        "<option value='D'>D</option>" +
+                    "</select>" +
+                "</div>" +
+                "<div class='form-group'>" +
+                    "<label>Marks</label>" +
+                    "<input type='number' class='question-marks' value='5' min='1'>" +
+                "</div>" +
+            "</div>" +
+            "<button class='remove-question-btn'>Remove Question</button>";
 
         questionList.appendChild(newQuestion);
         attachRemoveQuestionEvent(newQuestion.querySelector(".remove-question-btn"));
@@ -890,13 +899,17 @@ if (addQuestionBtn) {
     const saveQuizBtn = document.getElementById("save-quiz-btn");
     const quizMessage = document.getElementById("quiz-save-message");
 
-    saveQuizBtn.addEventListener("click", function() {
+    saveQuizBtn.addEventListener("click", async function() {
         const quizTitle = document.getElementById("quiz-title").value.trim();
+        const moduleId = document.getElementById("quiz-module").value;
+        const timeLimit = document.getElementById("quiz-time-limit").value;
+        const maxAttempts = document.getElementById("quiz-max-attempts").value;
+        const passingScore = document.getElementById("quiz-passing-score").value;
 
         if (quizTitle === "") {
-                quizMessage.textContent = "Please enter a quiz title.";
-                quizMessage.style.color = "#c0392b";
-                return;
+            quizMessage.textContent = "Please enter a quiz title.";
+            quizMessage.style.color = "#c0392b";
+            return;
         }
 
         const questionBlocks = document.querySelectorAll(".question-block");
@@ -921,42 +934,136 @@ if (addQuestionBtn) {
             quizMessage.style.color = "#c0392b";
             return;
         }
-        quizMessage.textContent = "Quiz saved successfully with " + questionBlocks.length + "question(s)!";
-        quizMessage.style.color = "#27ae60";
+
+        quizMessage.textContent = "Saving quiz...";
+        quizMessage.style.color = "#5B6472";
+
+        try {
+            // Step 1: create the quiz itself
+            const quizResponse = await fetch("http://127.0.0.1:5000/api/courses/" + courseId + "/quizzes", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({
+                    module_id: moduleId === "" ? null : parseInt(moduleId),
+                    title: quizTitle,
+                    time_limit: parseInt(timeLimit),
+                    maximum_attempts: parseInt(maxAttempts),
+                    passing_score: parseFloat(passingScore)
+                })
+            });
+
+            const quizData = await quizResponse.json();
+
+            if (!quizResponse.ok) {
+                quizMessage.textContent = quizData.message || "Could not create quiz.";
+                quizMessage.style.color = "#c0392b";
+                return;
+            }
+
+            const newQuizId = quizData.data.quiz_id;
+
+            // Step 2: create each question, one request per question
+            for (const block of questionBlocks) {
+                const options = block.querySelectorAll(".option-input");
+
+                const questionResponse = await fetch("http://127.0.0.1:5000/api/quizzes/" + newQuizId + "/questions", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    },
+                    body: JSON.stringify({
+                        question_text: block.querySelector(".question-text").value.trim(),
+                        option_a: options[0].value.trim(),
+                        option_b: options[1].value.trim(),
+                        option_c: options[2].value.trim(),
+                        option_d: options[3].value.trim(),
+                        correct_answer: block.querySelector(".correct-option").value,
+                        marks: parseFloat(block.querySelector(".question-marks").value)
+                    })
+                });
+
+                if (!questionResponse.ok) {
+                    const questionData = await questionResponse.json();
+                    quizMessage.textContent = "Quiz created, but a question failed: " + (questionData.message || "unknown error");
+                    quizMessage.style.color = "#c0392b";
+                    return;
+                }
+            }
+
+            quizMessage.textContent = "Quiz saved successfully with " + questionBlocks.length + " question(s)!";
+            quizMessage.style.color = "#27ae60";
+        } catch (error) {
+            quizMessage.textContent = "Could not reach the server.";
+            quizMessage.style.color = "#c0392b";
+        }
     });
 }
 
 const createAssignmentForm = document.getElementById("create-assignment-form");
 
 if (createAssignmentForm) {
-    createAssignmentForm.addEventListener("submit", function(event) {
+    const token = localStorage.getItem("access_token");
+    const courseId = 1; // Temporary: hardcoded until a real course-selection page exists
+
+    createAssignmentForm.addEventListener("submit", async function(event) {
         event.preventDefault();
 
         const title = document.getElementById("assignment-title").value.trim();
-        const module = document.getElementById("assignment-module").value;
+        const moduleId = document.getElementById("assignment-module").value;
         const description = document.getElementById("assignment-description").value.trim();
-        const deadline = document.getElementById("assignment-deadline").value;
-        const message = document.getElementById("assingment-create-message");
+        const maxMarks = document.getElementById("assignment-max-marks").value;
+        const rawDeadline = document.getElementById("assignment-deadline").value;
+        const fileTypes = document.getElementById("assignment-file-types").value.trim();
+        const message = document.getElementById("assignment-create-message");
 
-        if (title === "" || module === "" || description === "" || deadline == "") {
-            message.textContent = "Please fill in all required fields";
+        if (title === "" || moduleId === "" || description === "" || rawDeadline === "") {
+            message.textContent = "Please fill in all required fields.";
             message.style.color = "#c0392b";
             return;
         }
 
-        const deadlineDate = new Date(deadline);
-        const now = new Date();
-
-        if (deadlineDate <= now) {
-            message.textContent = "Deadline must be a future Date and Time";
+        const deadlineDate = new Date(rawDeadline);
+        if(deadlineDate <= new Date()) {
+            message.textContent = "Deadline must be a future date and time.";
             message.style.color = "#c0392b";
             return;
         }
 
-        message.textContent = "Assingment \"" + title + "\" created successfully!";
-        message.style.color = "#27ae60";
+        try {
+            const response = await fetch ("http://127.0.0.1:5000/api/courses/" + courseId + "/assignments", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({
+                    module_id: parseInt(moduleId),
+                    title: title,
+                    description: description,
+                    maximum_marks: parseFloat(maxMarks),
+                    deadline: rawDeadline.replace("T", " ") + ":00",
+                    allowed_file_types: fileTypes
+                })
+            });
 
-        createAssignmentForm.reset();
+            const data = await response.json();
+
+            if (response.ok) {
+                message.textContent = "Assignment \"" + data.data.title + "\" created successfully!";
+                message.style.color = "#27ae60";
+                createAssignmentForm.reset();
+            } else {
+                message.textContent = data.message || "Could not create assignment.";
+                message.style.color = "#c0392b";
+            }
+        } catch (error) {
+            message.textContent = "Could not reach the server.";
+            message.style.color = "#c0392b";
+        }
     });
 }
 
