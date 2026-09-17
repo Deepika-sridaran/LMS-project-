@@ -12,6 +12,7 @@ from routes.course_workflow_routes import course_workflow_bp
 from routes.quiz_routes import quiz_bp
 from routes.quiz_attempt_routes import quiz_attempt_bp
 from routes.module_lesson_routes import module_lesson_bp
+from routes.material_routes import material_bp
 
 
 def create_app():
@@ -59,6 +60,11 @@ def create_app():
 
     app.register_blueprint(
         module_lesson_bp,
+        url_prefix="/api"
+    )
+
+    app.register_blueprint(
+        material_bp,
         url_prefix="/api"
     )
 
