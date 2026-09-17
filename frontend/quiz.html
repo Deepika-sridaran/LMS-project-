@@ -17,34 +17,26 @@
             </ul>
         </nav>
         <main>
-            <h1>Quiz: Introduction to Python</h1>
-            <p id="quiz-timer">Time Left: 05:00</p>
-            <form id="quiz-form">
-                <div class="quiz-question">
-                    <h3>1.What does "print()" do in Python?</h3>
-                        <label><input type="radio" name="q1" value="a"> Deletes a variable</label>
-                        <label><input type="radio" name="q1" value="b"> Displays output on screen</label>
-                        <label><input type="radio" name="q1" value="c"> Creates a loop</label>
-                        <label><input type="radio" name="q1" value="d"> Imports a library</label>
-                </div>
-                <div class="quiz-question">
-                    <h3>2. Which symbol is used for comments in Python?</h3>
-                        <label><input type="radio" name="q2" value="a"> #</label>
-                        <label><input type="radio" name="q2" value="b"> //</label>
-                        <label><input type="radio" name="q2" value="c"> /**/</label>
-                        <label><input type="radio" name="q2" value="d"> --</label>
-                </div>
-                <div class="quiz-question">
-                    <h3>3. What data type is the value True</h3>
-                        <label><input type="radio" name="q3" value="a"> String</label>
-                        <label><input type="radio" name="q3" value="b"> Boolean</label>
-                        <label><input type="radio" name="q3" value="c"> Integer</label>
-                        <label><input type="radio" name="q3" value="d"> Float</label>
-                </div>
-                <button type="submit">Submit Quiz</button>
+            <h1 id="quiz-title">Loading quiz...</h1>
+
+            <p id="quiz-description"></p>
+            <p id="quiz-message"></p>
+            <p id="quiz-timer">Time left: --:--</p>
+
+            <button type="button" id="start-quiz-btn">
+                Start Quiz
+            </button>
+
+            <form id="quiz-form" hidden>
+                <div id="questions-container"></div>
+
+                <button type="submit" id="submit-quiz-btn">
+                    Submit Quiz
+                </button>
             </form>
+
             <div id="quiz-result"></div>
         </main>
-        <script src="script.js"></script>
+            <script src="script.js"></script>
     </body>
 </html>

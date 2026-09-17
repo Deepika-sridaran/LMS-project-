@@ -109,44 +109,290 @@ evalButtons.forEach(function(button) {
     });
 });
 
+const API_BASE_URL = "http://127.0.0.1:5000";
+
 const quizForm = document.getElementById("quiz-form");
+const startQuizButton = document.getElementById("start-quiz-btn");
 
-if (quizForm) {
-    const correctAnswers = { q1: "b", q2: "a", q3: "b" };
+if (quizForm && startQuizButton) {
+    const token = localStorage.getItem("access_token");
 
-    let timeLeft = 300; // 5 minutes in seconds
-    const timerDisplay = document.getElementById("quiz-timer");
+    const params = new URLSearchParams(window.location.search);
+    const quizId = params.get("quiz_id") || params.get("quiz");
 
-    const timerInterval = setInterval(function() {
-        timeLeft--;
-        const minutes = Math.floor(timeLeft / 60);
-        const seconds = timeLeft % 60;
-        timerDisplay.textContent = "Time Left: " + minutes +
-         ":" + (seconds < 10 ? '0' : '') + seconds;
+    const quizTitle = document.getElementById("quiz-title");
+    const quizDescription = document.getElementById("quiz-description");
+    const quizMessage = document.getElementById("quiz-message");
+    const quizTimer = document.getElementById("quiz-timer");
+    const questionsContainer =
+        document.getElementById("questions-container");
+    const submitQuizButton =
+        document.getElementById("submit-quiz-btn");
+    const quizResult =
+        document.getElementById("quiz-result");
 
-         if (timeLeft <= 0) {
-            clearInterval(timerInterval);
-            quizForm.dispatchEvent(new Event("submit"));
-         }
-        }, 1000);
+    let quizData = null;
+    let attemptId = null;
+    let timerInterval = null;
+    let isSubmitting = false;
 
-        quizForm.addEventListener("submit", function(event) {
-            event.preventDefault();
-            clearInterval(timerInterval);
+    function showMessage(message, color = "#c0392b") {
+        quizMessage.textContent = message;
+        quizMessage.style.color = color;
+    }
 
-            let score = 0;
-            for (const question in correctAnswers) {
-                const selected = quizForm.querySelector('input[name="' + question +
-                     '"]:checked');
-                if (selected && selected.value === correctAnswers[question]) {
-                    score++;
-                }
+    async function apiRequest(url, options = {}) {
+        const requestOptions = {
+            ...options,
+            headers: {
+                ...(options.body
+                    ? { "Content-Type": "application/json" }
+                    : {}),
+                "Authorization": "Bearer " + token,
+                ...(options.headers || {})
             }
+        };
 
-            const total = Object.keys(correctAnswers).length;
-            document.getElementById("quiz-result").textContent = 
-            "You scored " + score + " out of " + total + "!";
+        const response = await fetch(
+            API_BASE_URL + url,
+            requestOptions
+        );
+
+        const data = await response.json().catch(function() {
+            return {};
         });
+
+        if (!response.ok) {
+            throw new Error(
+                data.message || "Request failed with status " + response.status
+            );
+        }
+
+        return data;
+    }
+
+    function renderQuestions(questions) {
+        questionsContainer.innerHTML = "";
+
+        questions.forEach(function(question, index) {
+            const questionBlock = document.createElement("div");
+            questionBlock.className = "quiz-question";
+
+            const heading = document.createElement("h3");
+            heading.textContent =
+                (index + 1) + ". " + question.question_text;
+
+            questionBlock.appendChild(heading);
+
+            const options = [
+                ["A", question.option_a],
+                ["B", question.option_b],
+                ["C", question.option_c],
+                ["D", question.option_d]
+            ];
+
+            options.forEach(function(option) {
+                const label = document.createElement("label");
+                label.style.display = "block";
+                label.style.marginBottom = "8px";
+
+                const input = document.createElement("input");
+                input.type = "radio";
+                input.name = "question-" + question.question_id;
+                input.value = option[0];
+                input.dataset.questionId = question.question_id;
+
+                label.appendChild(input);
+                label.appendChild(
+                    document.createTextNode(
+                        " " + option[0] + ". " + option[1]
+                    )
+                );
+
+                questionBlock.appendChild(label);
+            });
+
+            questionsContainer.appendChild(questionBlock);
+        });
+    }
+
+    function startTimer(minutes) {
+        let remainingSeconds = Number(minutes) * 60;
+
+        function updateTimer() {
+            const displayMinutes =
+                Math.floor(remainingSeconds / 60);
+
+            const displaySeconds =
+                remainingSeconds % 60;
+
+            quizTimer.textContent =
+                "Time left: " +
+                displayMinutes +
+                ":" +
+                String(displaySeconds).padStart(2, "0");
+        }
+
+        updateTimer();
+
+        timerInterval = setInterval(function() {
+            remainingSeconds--;
+
+            updateTimer();
+
+            if (remainingSeconds <= 0) {
+                clearInterval(timerInterval);
+                showMessage(
+                    "Time is over. Your quiz is being submitted.",
+                    "#c0392b"
+                );
+                submitQuiz();
+            }
+        }, 1000);
+    }
+
+    function collectAnswers() {
+        const answers = [];
+
+        quizData.questions.forEach(function(question) {
+            const selected = document.querySelector(
+                "input[name='question-" +
+                question.question_id +
+                "']:checked"
+            );
+
+            if (selected) {
+                answers.push({
+                    question_id: Number(question.question_id),
+                    selected_answer: selected.value
+                });
+            }
+        });
+
+        return answers;
+    }
+
+    async function submitQuiz() {
+        if (isSubmitting) {
+            return;
+        }
+
+        isSubmitting = true;
+        clearInterval(timerInterval);
+        submitQuizButton.disabled = true;
+
+        const answers = collectAnswers();
+
+        try {
+            const result = await apiRequest(
+                "/api/quiz-attempts/" +
+                attemptId +
+                "/submit",
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        answers: answers
+                    })
+                }
+            );
+
+            const score = result.data.score;
+            const passed = result.data.passed;
+
+            quizResult.textContent =
+                "Your score: " +
+                score +
+                "%. " +
+                (passed ? "Quiz Passed!" : "Quiz Failed.");
+
+            quizResult.style.color =
+                passed ? "#27ae60" : "#c0392b";
+
+            showMessage(
+                "Quiz submitted successfully.",
+                "#27ae60"
+            );
+        } catch (error) {
+            isSubmitting = false;
+            submitQuizButton.disabled = false;
+
+            showMessage(error.message);
+        }
+    }
+
+    async function loadQuiz() {
+        if (!token) {
+            showMessage("Please log in before attempting the quiz.");
+            startQuizButton.disabled = true;
+            return;
+        }
+
+        if (!quizId) {
+            showMessage(
+                "Quiz ID is missing. Open the page using ?quiz_id=22."
+            );
+            startQuizButton.disabled = true;
+            return;
+        }
+
+        try {
+            const result = await apiRequest(
+                "/api/quizzes/" + quizId
+            );
+
+            quizData = result.data;
+
+            quizTitle.textContent = quizData.title;
+            quizDescription.textContent =
+                quizData.description || "";
+
+            renderQuestions(quizData.questions);
+
+            showMessage(
+                "Quiz loaded. Click Start Quiz.",
+                "#27ae60"
+            );
+        } catch (error) {
+            showMessage(error.message);
+            startQuizButton.disabled = true;
+        }
+    }
+
+    startQuizButton.addEventListener("click", async function() {
+        startQuizButton.disabled = true;
+        showMessage("Starting quiz...", "#5B6472");
+
+        try {
+            const result = await apiRequest(
+                "/api/quizzes/" + quizId + "/attempts",
+                {
+                    method: "POST"
+                }
+            );
+
+            attemptId = result.data.attempt_id;
+
+            startQuizButton.hidden = true;
+            quizForm.hidden = false;
+
+            showMessage(
+                "Quiz started. Good luck!",
+                "#27ae60"
+            );
+
+            startTimer(quizData.time_limit);
+        } catch (error) {
+            startQuizButton.disabled = false;
+            showMessage(error.message);
+        }
+    });
+
+    quizForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+        submitQuiz();
+    });
+
+    loadQuiz();
 }
 
 const assignmentForm = document.getElementById("assignment-form");
@@ -981,7 +1227,7 @@ if (addQuestionBtn) {
                         option_b: options[1].value.trim(),
                         option_c: options[2].value.trim(),
                         option_d: options[3].value.trim(),
-                        correct_answer: block.querySelector(".correct-option").value,
+                        correct_option: block.querySelector(".correct-option").value,
                         marks: parseFloat(block.querySelector(".question-marks").value)
                     })
                 });
@@ -1001,6 +1247,86 @@ if (addQuestionBtn) {
             quizMessage.style.color = "#c0392b";
         }
     });
+}
+
+if (window.location.pathname.includes("course-details.html")) {
+    const params = new URLSearchParams(window.location.search);
+    const courseKey = params.get("course");
+
+    // Replace these numbers with the actual IDs from your database.
+    const courseIds = {
+        python: 1,
+        webdesign: 2,
+        datastructures: 3
+    };
+
+    const courseId = courseIds[courseKey];
+    const enrollButton = document.getElementById("enroll-course-btn");
+    const enrollMessage = document.getElementById("enroll-message");
+    const token = localStorage.getItem("access_token");
+
+    if (enrollButton) {
+        enrollButton.addEventListener("click", async function () {
+            if (!token) {
+                enrollMessage.textContent = "Please log in as a student first.";
+                enrollMessage.style.color = "#c0392b";
+                return;
+            }
+
+            if (!courseId) {
+                enrollMessage.textContent = "Course ID was not found.";
+                enrollMessage.style.color = "#c0392b";
+                return;
+            }
+
+            enrollButton.disabled = true;
+            enrollButton.textContent = "Enrolling...";
+            enrollMessage.textContent = "";
+
+            try {
+                const response = await fetch(
+                    "http://127.0.0.1:5000/api/enrollments/",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + token
+                        },
+                        body: JSON.stringify({
+                            course_id: Number(courseId)
+                        })
+                    }
+                );
+
+                const data = await response.json().catch(function (){
+                    return{};
+                });
+
+                if (response.ok || response.status === 409) {
+                    enrollMessage.textContent =
+                        data.message || "Enrollment successful!";
+                    enrollMessage.style.color = "#27ae60";
+
+                    enrollButton.textContent = "Enrolled";
+                    enrollButton.disabled = true;
+                } else {
+                    enrollMessage.textContent =
+                        data.message || "Enrollment failed. Status: " + response.status;
+                    enrollMessage.style.color = "#c0392b";
+
+                    enrollButton.textContent = "Enroll";
+                    enrollButton.disabled = false;
+                }
+            } catch (error) {
+                enrollMessage.textContent =
+                    "Could not reach the enrollment API.";
+                enrollMessage.style.color = "#c0392b";
+
+                enrollButton.textContent = "Enroll";
+                enrollButton.disabled = false;
+            }
+        });
+    }
 }
 
 const createAssignmentForm = document.getElementById("create-assignment-form");
