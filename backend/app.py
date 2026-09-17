@@ -3,22 +3,20 @@ from flask_cors import CORS
 
 from config import Config
 from extensions import db, bcrypt, jwt, migrate
+
 from routes.auth_routes import auth_bp
 from routes.user_routes import user_bp
 from routes.category_routes import category_bp
-from routes.assignment_routes import assignment_bp
-from routes.quiz_routes import quiz_bp
+
 
 def create_app():
     app = Flask(__name__)
-
     app.config.from_object(Config)
 
     db.init_app(app)
     bcrypt.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
-
     CORS(app)
 
     app.register_blueprint(
@@ -36,14 +34,6 @@ def create_app():
         url_prefix="/api/categories"
     )
 
-    app.register_blueprint(
-        assignment_bp
-    )
-
-    app.register_blueprint(
-        quiz_bp
-    )
-
     @app.route("/")
     def home():
         return {
@@ -54,7 +44,9 @@ def create_app():
     @app.route("/database-test")
     def database_test():
         try:
-            db.session.execute(db.text("SELECT 1"))
+            db.session.execute(
+                db.text("SELECT 1")
+            )
 
             return {
                 "success": True,
