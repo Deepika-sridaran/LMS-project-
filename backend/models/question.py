@@ -39,7 +39,7 @@ class Question(db.Model):
         nullable=False
     )
 
-    correct_answer = db.Column(
+    correct_option = db.Column(
         db.String(1),
         nullable=False
     )

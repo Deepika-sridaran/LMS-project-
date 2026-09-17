@@ -142,7 +142,7 @@ def submit_attempt(attempt_id, student_id, answers):
 
         marks_awarded = 0
 
-        if selected_answer == question.correct_answer:
+        if selected_answer == question.correct_option:
             marks_awarded = float(question.marks)
             total_score += marks_awarded
 

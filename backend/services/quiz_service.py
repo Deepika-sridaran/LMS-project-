@@ -92,7 +92,7 @@ def add_question(
     option_b,
     option_c,
     option_d,
-    correct_answer,
+    correct_option,
     marks
 ):
     question = Question(
@@ -102,7 +102,7 @@ def add_question(
         option_b=option_b,
         option_c=option_c,
         option_d=option_d,
-        correct_answer=correct_answer,
+        correct_option=correct_option,
         marks=marks
     )
 

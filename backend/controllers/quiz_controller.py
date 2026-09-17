@@ -381,7 +381,7 @@ def create_new_question(quiz_id, data):
         "option_b",
         "option_c",
         "option_d",
-        "correct_answer",
+        "correct_option",
         "marks"
     ]
 
@@ -392,11 +392,11 @@ def create_new_question(quiz_id, data):
                 "message": f"{field} is required"
             }), 400
 
-    correct_answer = str(
-        data["correct_answer"]
+    correct_option = str(
+        data["correct_option"]
     ).upper()
 
-    if correct_answer not in [
+    if correct_option not in [
         "A",
         "B",
         "C",
@@ -404,7 +404,7 @@ def create_new_question(quiz_id, data):
     ]:
         return jsonify({
             "success": False,
-            "message": "correct_answer must be A, B, C or D"
+            "message": "correct_option must be A, B, C or D"
         }), 400
 
     question = add_question(
@@ -414,7 +414,7 @@ def create_new_question(quiz_id, data):
         option_b=data["option_b"],
         option_c=data["option_c"],
         option_d=data["option_d"],
-        correct_answer=correct_answer,
+        correct_option=correct_option,
         marks=data["marks"]
     )
 
