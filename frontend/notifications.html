@@ -6,6 +6,7 @@
     <title>LMS - Notifications</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <nav>
@@ -21,12 +22,18 @@
     <main>
         <h1>Notifications</h1>
 
+        <button onclick="markAllNotificationsAsRead()">
+            Mark All as Read
+        </button>
+
         <ul id="notification-list">
-            <li class="notification-item">Your course "Web Design Basics" was approved.</li>
-            <li class="notification-item">New assignment posted in "Introduction to Python".</li>
-            <li class="notification-item">Your quiz for "Data Structures" was evaluated.</li>
+            <li class="notification-item">
+                Loading notifications...
+            </li>
         </ul>
     </main>
+
     <script src="script.js"></script>
+
 </body>
 </html>

@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory
+from flask import Flask
 from flask_cors import CORS
 
 from config import Config
@@ -12,18 +12,12 @@ from routes.course_workflow_routes import course_workflow_bp
 from routes.quiz_routes import quiz_bp
 from routes.quiz_attempt_routes import quiz_attempt_bp
 from routes.module_lesson_routes import module_lesson_bp
-<<<<<<< HEAD
-from routes.material_routes import material_bp
-from routes.enrollment_routes import enrollment_bp
-=======
 from routes.enrollment_routes import get_my_enrollments
 from routes.certificate_routes import certificate_bp
-from routes.notification_routes import notification_bp
->>>>>>> f6be0f3 (Update project files)
 
 
 def create_app():
-    app = Flask(__name__, static_folder="../frontend", static_url_path="")
+    app = Flask(__name__)
     app.config.from_object(Config)
 
     db.init_app(app)
@@ -70,21 +64,7 @@ def create_app():
         url_prefix="/api"
     )
 
-<<<<<<< HEAD
-    app.register_blueprint(
-        material_bp,
-        url_prefix="/api"
-    )
-
-    app.register_blueprint(
-        enrollment_bp,
-        url_prefix="/api"
-    )
-
-=======
     app.register_blueprint(certificate_bp)
-
-    app.register_blueprint(notification_bp)
 
     app.add_url_rule(
         "/api/enrollments/my",
@@ -92,11 +72,6 @@ def create_app():
         methods=["GET"]
     )
 
-
-    @app.route("/<path:filename>")
-    def frontend(filename):
-        return send_from_directory(app.static_folder, filename)
->>>>>>> f6be0f3 (Update project files)
     @app.route("/")
     def home():
         return {
@@ -131,10 +106,6 @@ app = create_app()
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-
-
-
 
 
 
