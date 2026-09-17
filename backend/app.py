@@ -9,6 +9,7 @@ from routes.user_routes import user_bp
 from routes.category_routes import category_bp
 from routes.course_routes import course_bp
 from routes.course_workflow_routes import course_workflow_bp
+from routes.module_lesson_routes import module_lesson_bp
 
 
 def create_app():
@@ -44,6 +45,11 @@ def create_app():
     app.register_blueprint(
         course_workflow_bp,
         url_prefix="/api/courses"
+    )
+
+    app.register_blueprint(
+        module_lesson_bp,
+        url_prefix="/api"
     )
 
     @app.route("/")
