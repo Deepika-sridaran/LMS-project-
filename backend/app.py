@@ -1,9 +1,7 @@
 from flask import Flask, send_from_directory
 from flask_cors import CORS
-
 from config import Config
 from extensions import db, bcrypt, jwt, migrate
-
 from routes.auth_routes import auth_bp
 from routes.user_routes import user_bp
 from routes.category_routes import category_bp
@@ -12,14 +10,14 @@ from routes.course_workflow_routes import course_workflow_bp
 from routes.quiz_routes import quiz_bp
 from routes.quiz_attempt_routes import quiz_attempt_bp
 from routes.module_lesson_routes import module_lesson_bp
-<<<<<<< HEAD
+
 from routes.material_routes import material_bp
 from routes.enrollment_routes import enrollment_bp
-=======
+
 from routes.enrollment_routes import get_my_enrollments
 from routes.certificate_routes import certificate_bp
 from routes.notification_routes import notification_bp
->>>>>>> f6be0f3 (Update project files)
+
 
 
 def create_app():
@@ -70,7 +68,7 @@ def create_app():
         url_prefix="/api"
     )
 
-<<<<<<< HEAD
+
     app.register_blueprint(
         material_bp,
         url_prefix="/api"
@@ -81,7 +79,7 @@ def create_app():
         url_prefix="/api"
     )
 
-=======
+
     app.register_blueprint(certificate_bp)
 
     app.register_blueprint(notification_bp)
@@ -96,7 +94,7 @@ def create_app():
     @app.route("/<path:filename>")
     def frontend(filename):
         return send_from_directory(app.static_folder, filename)
->>>>>>> f6be0f3 (Update project files)
+
     @app.route("/")
     def home():
         return {
