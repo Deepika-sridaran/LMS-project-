@@ -6,11 +6,16 @@ class Module(db.Model):
 
     module_id = db.Column(
         db.Integer,
-        primary_key=True
+        primary_key=True,
+        autoincrement=True
     )
 
     course_id = db.Column(
         db.Integer,
+        db.ForeignKey(
+            "courses.course_id",
+            ondelete="CASCADE"
+        ),
         nullable=False
     )
 
@@ -27,4 +32,9 @@ class Module(db.Model):
     module_order = db.Column(
         db.Integer,
         nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        server_default=db.func.current_timestamp()
     )
