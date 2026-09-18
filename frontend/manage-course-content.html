@@ -19,55 +19,68 @@
             </ul>
         </nav>
         <main>
-            <h1>Manage Content: Python Programming for Beginners</h1>
+    <h1 id="manage-course-title">
+        Manage Course Content
+    </h1>
 
-            <form id="add-module-form">
-                <div class="form-group">
-                    <label for="module-name">New Module Name</label>
-                    <input type="text" id="module-name" placeholder="e.g. Advanced Topics" required>
-                </div>
-                <button type="submit">Add Module</button>
-            </form>
+    <p id="trainer-content-message"></p>
 
-            <div id="module-list">
-                <div class="module-header">
-                    <h3>Module 1: Python Basics</h3>
-                    <button class="delete-module-btn">Delete Module</button>
-                </div>
-                <ul class="lesson-list">
-                    <li>Introduction to Python
-                        <button class="delete-lesson-btn">Remove</button>
-                    </li>
-                    <li>Variables and Data Types
-                        <button class="delete-lesson-btn">Remove</button>
-                    </li>
-                </ul>
+    <section>
+        <h2>Create Module</h2>
 
-                <div class="add-lesson-row">
-                    <input type="text" class="new-lesson-input" placeholder="New lesson name">
-                    <button class="add-lesson-btn">Add Lesson</button>
-                </div>
+        <form id="add-module-form">
+            <div class="form-group">
+                <label for="module-name">
+                    Module Name
+                </label>
+
+                <input
+                    type="text"
+                    id="module-name"
+                    required
+                    placeholder="Example: Python Basics">
             </div>
 
-            <div class="module-block">
-                <div class="module-header">
-                    <h3>Module 2: Control Flow</h3>
-                    <button class="delete-module-btn">Delete Module</button>
-                </div>
-                <ul class="lesson-list">
-                    <li>Conditional Statements
-                        <button class="delete-lesson-btn">Remove</button>
-                    </li>
-                    <li>Loops
-                        <button class="delete-lesson-btn">Remove</button>
-                    </li>
-                </ul>
-                <div class="add-lesson-row">
-                    <input type="text" class="new-lesson-input" placeholder="New lesson name">
-                    <button class="add-lesson-btn">Add Lesson</button>
-                </div>
+            <div class="form-group">
+                <label for="module-description">
+                    Description
+                </label>
+
+                <textarea
+                    id="module-description"
+                    placeholder="Describe this module">
+                </textarea>
             </div>
-        </main>
+
+            <div class="form-group">
+                <label for="module-order">
+                    Module Order
+                </label>
+
+                <input
+                    type="number"
+                    id="module-order"
+                    min="1"
+                    required
+                    placeholder="1">
+            </div>
+
+            <button type="submit">
+                Add Module
+            </button>
+        </form>
+    </section>
+
+    <hr>
+
+    <section>
+        <h2>Existing Modules</h2>
+
+        <div id="module-list">
+            <p>Loading modules...</p>
+        </div>
+    </section>
+</main>
         <script src="script.js"></script>
     </body>
 </html>

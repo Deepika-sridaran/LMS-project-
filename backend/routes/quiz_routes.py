@@ -8,6 +8,7 @@ from controllers.quiz_controller import (
     update_existing_quiz,
     delete_existing_quiz,
     create_new_question,
+    update_existing_question,
     delete_existing_question
 )
 
@@ -84,6 +85,20 @@ def create_question(quiz_id):
 
     return create_new_question(
         quiz_id,
+        data
+    )
+
+
+@quiz_bp.route(
+    "/questions/<int:question_id>",
+    methods=["PUT"]
+)
+@jwt_required()
+def update_question(question_id):
+    data = request.get_json() or {}
+
+    return update_existing_question(
+        question_id,
         data
     )
 

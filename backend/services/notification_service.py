@@ -2,6 +2,26 @@ from extensions import db
 from models.notification import Notification
 
 
+def create_notification(
+    user_id,
+    title,
+    message,
+    notification_type
+):
+    notification = Notification(
+        user_id=user_id,
+        title=title,
+        message=message,
+        notification_type=notification_type,
+        is_read=False
+    )
+
+    db.session.add(notification)
+    db.session.commit()
+
+    return notification
+
+
 def get_user_notifications(user_id):
     return Notification.query.filter_by(
         user_id=user_id

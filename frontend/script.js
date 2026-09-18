@@ -1,7 +1,14 @@
 if (window.location.pathname.includes("course-details.html")) {
 
     const params = new URLSearchParams(window.location.search);
-    const courseId = params.get("course");
+    const courseIdMap = {
+                python: 1,
+                webdesign: 8,
+                datastructures: 6
+        };
+    const courseId =
+            params.get("course_id") ||
+            courseIdMap[params.get("course")];
 
     const courseData = {
         python: { courseId: 1, title: "Python Programming for Beginners",
@@ -1003,84 +1010,504 @@ if (profilePicInput) {
     });
 }
 
-const addModuleForm = document.getElementById("add-module-form");
+/* ================= TRAINER COURSE CONTENT ================= */
 
-if (addModuleForm) {
-    const moduleList = document.getElementById("module-list");
+const trainerModuleList =
+    document.getElementById("module-list");
 
-    // Adding a new lesson to a module (works for existing AND newly-added modules)
-    function attachAddLessonEvent(button) {
-        button.addEventListener("click", function() {
-            const moduleBlock = button.closest(".module-block");
-            const input = moduleBlock.querySelector(".new-lesson-input");
-            const lessonName = input.value.trim();
+const trainerAddModuleForm =
+    document.getElementById("add-module-form");
 
-            if (lessonName === "") return;
+if (trainerModuleList && trainerAddModuleForm) {
+    const API_BASE_URL = "http://127.0.0.1:5000";
+    const token = localStorage.getItem("access_token");
 
-            const newLesson = document.createElement("li");
-            newLesson.innerHTML = lessonName + " <button class='delete-lesson-btn'>Remove</button>";
+    const params =
+        new URLSearchParams(window.location.search);
 
-            moduleBlock.querySelector(".lesson-list").appendChild(newLesson);
-            attachDeleteLessonEvent(newLesson.querySelector(".delete-lesson-btn"));
+    const courseId = params.get("course_id");
 
-            input.value = "";
-        });
+    const messageElement =
+        document.getElementById(
+            "trainer-content-message"
+        );
+
+    function showTrainerMessage(message, color) {
+        messageElement.textContent = message;
+        messageElement.style.color = color;
     }
 
-    // Deleting a single lesson
-    function attachDeleteLessonEvent(button) {
-        button.addEventListener("click", function() {
-            button.closest("li").remove();
-        });
-    }
-
-    // Deleting an entire module
-    function attachDeleteModuleEvent(button) {
-        button.addEventListener("click", function() {
-            const moduleBlock = button.closest(".module-block");
-            const confirmed = confirm("Delete this entire module and all its lessons?");
-            if (confirmed) {
-                moduleBlock.remove();
+    async function trainerApiRequest(
+        path,
+        options = {}
+    ) {
+        const response = await fetch(
+            API_BASE_URL + path,
+            {
+                ...options,
+                headers: {
+                    "Authorization":
+                        "Bearer " + token,
+                    ...(options.body &&
+                    !(options.body instanceof FormData)
+                        ? {
+                            "Content-Type":
+                                "application/json"
+                        }
+                        : {}),
+                    ...(options.headers || {})
+                }
             }
-        });
+        );
+
+        const data = await response.json().catch(
+            function () {
+                return {};
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                data.message ||
+                "Request failed with status " +
+                response.status
+            );
+        }
+
+        return data;
     }
 
-    // Wire up all buttons that already exist on page load
-    document.querySelectorAll(".add-lesson-btn").forEach(attachAddLessonEvent);
-    document.querySelectorAll(".delete-lesson-btn").forEach(attachDeleteLessonEvent);
-    document.querySelectorAll(".delete-module-btn").forEach(attachDeleteModuleEvent);
+    async function loadTrainerModules() {
+        if (!courseId) {
+            trainerModuleList.innerHTML =
+                "<p>Course ID is missing.</p>";
+            return;
+        }
 
-    // Adding a brand new module
-    addModuleForm.addEventListener("submit", function(event) {
-        event.preventDefault();
+        try {
+            const result =
+                await trainerApiRequest(
+                    "/api/courses/" +
+                    courseId +
+                    "/modules"
+                );
 
-        const moduleNameInput = document.getElementById("module-name");
-        const moduleName = moduleNameInput.value.trim();
+            const modules =
+                result.modules || [];
 
-        if (moduleName === "") return;
+            if (!modules.length) {
+                trainerModuleList.innerHTML =
+                    "<p>No modules created yet.</p>";
+                return;
+            }
 
-        const moduleCount = document.querySelectorAll(".module-block").length + 1;
+            trainerModuleList.innerHTML = "";
 
-        const newModule = document.createElement("div");
-        newModule.className = "module-block";
-        newModule.innerHTML =
-            "<div class='module-header'>" +
-                "<h3>Module " + moduleCount + ": " + moduleName + "</h3>" +
-                "<button class='delete-module-btn'>Delete Module</button>" +
-            "</div>" +
-            "<ul class='lesson-list'></ul>" +
-            "<div class='add-lesson-row'>" +
-                "<input type='text' class='new-lesson-input' placeholder='New lesson name'>" +
-                "<button class='add-lesson-btn'>Add Lesson</button>" +
-            "</div>";
+            for (const module of modules) {
+                const moduleBlock =
+                    document.createElement("article");
 
-        moduleList.appendChild(newModule);
+                moduleBlock.className =
+                    "module-block";
 
-        attachAddLessonEvent(newModule.querySelector(".add-lesson-btn"));
-        attachDeleteModuleEvent(newModule.querySelector(".delete-module-btn"));
+                moduleBlock.dataset.moduleId =
+                    module.module_id;
 
-        moduleNameInput.value = "";
-    });
+                moduleBlock.innerHTML = `
+                    <div class="module-header">
+                        <h3>
+                            Module ${module.module_order}:
+                            ${module.module_name}
+                        </h3>
+
+                        <button
+                            type="button"
+                            class="delete-module-btn">
+                            Delete Module
+                        </button>
+                    </div>
+
+                    <p>
+                        ${module.description || ""}
+                    </p>
+
+                    <div class="trainer-lesson-list">
+                        <p>Loading lessons...</p>
+                    </div>
+
+                    <form
+                        class="add-lesson-form"
+                        data-module-id="${module.module_id}">
+
+                        <h4>Add Lesson</h4>
+
+                        <input
+                            type="text"
+                            name="lesson_name"
+                            required
+                            placeholder="Lesson name">
+
+                        <textarea
+                            name="description"
+                            placeholder="Lesson description">
+                        </textarea>
+
+                        <input
+                            type="number"
+                            name="lesson_order"
+                            min="1"
+                            required
+                            placeholder="Lesson order">
+
+                        <button type="submit">
+                            Add Lesson
+                        </button>
+                    </form>
+                `;
+
+                trainerModuleList.appendChild(
+                    moduleBlock
+                );
+
+                await loadTrainerLessons(
+                    moduleBlock,
+                    module.module_id
+                );
+            }
+        } catch (error) {
+            trainerModuleList.innerHTML =
+                "<p>Unable to load modules: " +
+                error.message +
+                "</p>";
+        }
+    }
+
+    async function loadTrainerLessons(
+        moduleBlock,
+        moduleId
+    ) {
+        const lessonList =
+            moduleBlock.querySelector(
+                ".trainer-lesson-list"
+            );
+
+        try {
+            const result =
+                await trainerApiRequest(
+                    "/api/modules/" +
+                    moduleId +
+                    "/lessons"
+                );
+
+            const lessons =
+                result.lessons || [];
+
+            if (!lessons.length) {
+                lessonList.innerHTML =
+                    "<p>No lessons created yet.</p>";
+                return;
+            }
+
+            lessonList.innerHTML = "";
+
+            lessons.forEach(function (lesson) {
+                const lessonElement =
+                    document.createElement("div");
+
+                lessonElement.className =
+                    "trainer-lesson";
+
+                lessonElement.dataset.lessonId =
+                    lesson.lesson_id;
+
+                lessonElement.innerHTML = `
+                    <p>
+                        Lesson ${lesson.lesson_order}:
+                        ${lesson.lesson_name}
+                    </p>
+
+                    <button
+                        type="button"
+                        class="delete-lesson-btn">
+                        Delete Lesson
+                    </button>
+
+                    <form
+                        class="upload-material-form"
+                        data-lesson-id="${lesson.lesson_id}">
+
+                        <input
+                            type="text"
+                            name="material_name"
+                            required
+                            placeholder="Material name">
+
+                        <input
+                            type="file"
+                            name="file"
+                            accept=".pdf,.mp4"
+                            required>
+
+                        <button type="submit">
+                            Upload Material
+                        </button>
+                    </form>
+                `;
+
+                lessonList.appendChild(
+                    lessonElement
+                );
+            });
+        } catch (error) {
+            lessonList.innerHTML =
+                "<p>Unable to load lessons.</p>";
+        }
+    }
+
+    trainerAddModuleForm.addEventListener(
+        "submit",
+        async function (event) {
+            event.preventDefault();
+
+            const moduleName =
+                document.getElementById(
+                    "module-name"
+                ).value.trim();
+
+            const description =
+                document.getElementById(
+                    "module-description"
+                ).value.trim();
+
+            const moduleOrder =
+                document.getElementById(
+                    "module-order"
+                ).value;
+
+            try {
+                await trainerApiRequest(
+                    "/api/courses/" +
+                    courseId +
+                    "/modules",
+                    {
+                        method: "POST",
+                        body: JSON.stringify({
+                            module_name: moduleName,
+                            description: description,
+                            module_order:
+                                Number(moduleOrder)
+                        })
+                    }
+                );
+
+                trainerAddModuleForm.reset();
+
+                showTrainerMessage(
+                    "Module created successfully.",
+                    "#27ae60"
+                );
+
+                await loadTrainerModules();
+            } catch (error) {
+                showTrainerMessage(
+                    error.message,
+                    "#c0392b"
+                );
+            }
+        }
+    );
+
+    trainerModuleList.addEventListener(
+        "submit",
+        async function (event) {
+            const form =
+                event.target.closest(
+                    ".add-lesson-form"
+                );
+
+            if (!form) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const moduleId =
+                form.dataset.moduleId;
+
+            const lessonName =
+                form.elements.lesson_name.value.trim();
+
+            const description =
+                form.elements.description.value.trim();
+
+            const lessonOrder =
+                form.elements.lesson_order.value;
+
+            try {
+                await trainerApiRequest(
+                    "/api/modules/" +
+                    moduleId +
+                    "/lessons",
+                    {
+                        method: "POST",
+                        body: JSON.stringify({
+                            lesson_name: lessonName,
+                            description: description,
+                            lesson_order:
+                                Number(lessonOrder)
+                        })
+                    }
+                );
+
+                showTrainerMessage(
+                    "Lesson created successfully.",
+                    "#27ae60"
+                );
+
+                await loadTrainerModules();
+            } catch (error) {
+                showTrainerMessage(
+                    error.message,
+                    "#c0392b"
+                );
+            }
+        }
+    );
+
+    trainerModuleList.addEventListener(
+        "submit",
+        async function (event) {
+            const form =
+                event.target.closest(
+                    ".upload-material-form"
+                );
+
+            if (!form) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const lessonId =
+                form.dataset.lessonId;
+
+            const formData =
+                new FormData(form);
+
+            try {
+                await trainerApiRequest(
+                    "/api/lessons/" +
+                    lessonId +
+                    "/materials",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+                showTrainerMessage(
+                    "Material uploaded successfully.",
+                    "#27ae60"
+                );
+
+                form.reset();
+            } catch (error) {
+                showTrainerMessage(
+                    error.message,
+                    "#c0392b"
+                );
+            }
+        }
+    );
+
+    trainerModuleList.addEventListener(
+        "click",
+        async function (event) {
+            const deleteModuleButton =
+                event.target.closest(
+                    ".delete-module-btn"
+                );
+
+            if (deleteModuleButton) {
+                const moduleBlock =
+                    deleteModuleButton.closest(
+                        ".module-block"
+                    );
+
+                const moduleId =
+                    moduleBlock.dataset.moduleId;
+
+                const confirmed = confirm(
+                    "Delete this module and its lessons?"
+                );
+
+                if (!confirmed) {
+                    return;
+                }
+
+                try {
+                    await trainerApiRequest(
+                        "/api/modules/" +
+                        moduleId,
+                        {
+                            method: "DELETE"
+                        }
+                    );
+
+                    await loadTrainerModules();
+                } catch (error) {
+                    showTrainerMessage(
+                        error.message,
+                        "#c0392b"
+                    );
+                }
+
+                return;
+            }
+
+            const deleteLessonButton =
+                event.target.closest(
+                    ".delete-lesson-btn"
+                );
+
+            if (deleteLessonButton) {
+                const lessonElement =
+                    deleteLessonButton.closest(
+                        ".trainer-lesson"
+                    );
+
+                const lessonId =
+                    lessonElement.dataset.lessonId;
+
+                const confirmed = confirm(
+                    "Delete this lesson?"
+                );
+
+                if (!confirmed) {
+                    return;
+                }
+
+                try {
+                    await trainerApiRequest(
+                        "/api/lessons/" +
+                        lessonId,
+                        {
+                            method: "DELETE"
+                        }
+                    );
+
+                    await loadTrainerModules();
+                } catch (error) {
+                    showTrainerMessage(
+                        error.message,
+                        "#c0392b"
+                    );
+                }
+            }
+        }
+    );
+
+    loadTrainerModules();
 }
 
 const addQuestionBtn = document.getElementById("add-question-btn");
@@ -1800,183 +2227,352 @@ if (viewCertificateBtn && certificateMessage) {
 }
 
 
-/* ================= COURSE MODULES AND LESSONS ================= */
+/* ================= COURSE CONTENT ================= */
 
-const courseContent = document.getElementById("course-content");
+const courseContentElement =
+    document.getElementById("course-content");
 
-if (courseContent) {
-
-    const params = new URLSearchParams(window.location.search);
-    const courseId = params.get("course_id");
+if (courseContentElement) {
+    const API_BASE_URL = "http://127.0.0.1:5000";
     const token = localStorage.getItem("access_token");
+    const params = new URLSearchParams(window.location.search);
 
-    if (!courseId) {
+    // Prefer ?course_id=1.
+    // The text mappings are kept for older links such as ?course=python.
+    const courseIdMap = {
+        python: 1,
+        webdesign: 8,
+        datastructures: 6
+    };
 
-        courseContent.innerHTML =
-            "<p>Course information not found.</p>";
+    const courseId =
+        params.get("course_id") ||
+        courseIdMap[params.get("course")];
 
-    } else if (!token) {
+    function escapeHtml(value) {
+        return String(value || "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
 
-        courseContent.innerHTML =
-            "<p>Please login first.</p>";
-
-    } else {
-
-        fetch(
-            "http://127.0.0.1:5000/courses/" +
-            courseId +
-            "/modules",
+    async function apiRequest(path, options = {}) {
+        const response = await fetch(
+            API_BASE_URL + path,
             {
+                ...options,
                 headers: {
-                    "Authorization": "Bearer " + token
+                    ...(token
+                        ? {
+                            "Authorization":
+                                "Bearer " + token
+                        }
+                        : {}),
+                    ...(options.headers || {})
                 }
             }
-        )
-        .then(response => {
+        );
 
-            if (!response.ok) {
-                throw new Error("Failed to load modules");
-            }
+        const data = await response.json().catch(function () {
+            return {};
+        });
 
-            return response.json();
-        })
-        .then(data => {
+        if (!response.ok) {
+            throw new Error(
+                data.message ||
+                "Request failed with status " +
+                response.status
+            );
+        }
 
-            console.log("Modules API:", data);
+        return data;
+    }
+
+    async function loadMaterials(lessonId) {
+        const result = await apiRequest(
+            "/api/lessons/" +
+            lessonId +
+            "/materials"
+        );
+
+        return result.materials || result.data || [];
+    }
+
+    async function loadLessons(moduleId) {
+        const result = await apiRequest(
+            "/api/modules/" +
+            module.moduleId +
+            "/lessons"
+        );
+
+        return result.lessons || result.data || [];
+    }
+
+    function renderMaterials(materials) {
+        if (!materials.length) {
+            return "<p class='no-materials'>No materials available.</p>";
+        }
+
+        return `
+            <div class="lesson-materials">
+                <strong>Materials:</strong>
+                <ul>
+                    ${materials.map(function (material) {
+                        const fileUrl =
+                            material.file_path
+                                ? API_BASE_URL +
+                                  material.file_path
+                                : "";
+
+                        return `
+                            <li>
+                                ${escapeHtml(
+                                    material.material_name
+                                )}
+                                ${
+                                    fileUrl
+                                        ? `
+                                    <a
+                                        href="${escapeHtml(
+                                            fileUrl
+                                        )}"
+                                        target="_blank"
+                                        rel="noopener">
+                                        Open
+                                    </a>
+                                    `
+                                        : ""
+                                }
+                            </li>
+                        `;
+                    }).join("")}
+                </ul>
+            </div>
+        `;
+    }
+
+    async function renderLessons(moduleId) {
+        const lessons = await loadLessons(moduleId);
+
+        if (!lessons.length) {
+            return "<p>No lessons available.</p>";
+        }
+
+        const lessonHtml = await Promise.all(
+            lessons.map(async function (lesson) {
+                let materials = [];
+
+                try {
+                    materials = await loadMaterials(
+                        lesson.lesson_id
+                    );
+                } catch (error) {
+                    console.error(
+                        "Material loading error:",
+                        error
+                    );
+                }
+
+                return `
+                    <div class="course-lesson">
+                        <h4>
+                            Lesson ${escapeHtml(
+                                lesson.lesson_order
+                            )}:
+                            ${escapeHtml(
+                                lesson.lesson_name
+                            )}
+                        </h4>
+
+                        <p>
+                            ${escapeHtml(
+                                lesson.description
+                            )}
+                        </p>
+
+                        ${renderMaterials(materials)}
+
+                        <button
+                            type="button"
+                            class="complete-lesson-btn"
+                            data-lesson-id="${
+                                lesson.lesson_id
+                            }">
+                            Mark Lesson Complete
+                        </button>
+
+                        <span
+                            class="lesson-status"
+                            data-status-for="${
+                                lesson.lesson_id
+                            }">
+                        </span>
+                    </div>
+                `;
+            })
+        );
+
+        return lessonHtml.join("");
+    }
+
+    async function loadCourseContent() {
+        if (!courseId) {
+            courseContentElement.innerHTML =
+                "<p>Course ID was not found.</p>";
+            return;
+        }
+
+        if (!token) {
+            courseContentElement.innerHTML =
+                "<p>Please log in to view course content.</p>";
+            return;
+        }
+
+        courseContentElement.innerHTML =
+            "<p>Loading course content...</p>";
+
+        try {
+            const result = await apiRequest(
+                "/api/courses/" +
+                courseId +
+                "/modules"
+            );
 
             const modules =
-                data.data || data.modules || [];
+                result.modules ||
+                result.data ||
+                [];
 
-            if (modules.length === 0) {
-
-                courseContent.innerHTML =
-                    "<p>No modules available.</p>";
-
+            if (!modules.length) {
+                courseContentElement.innerHTML =
+                    "<p>No modules are available.</p>";
                 return;
             }
 
-            courseContent.innerHTML = "";
+            const moduleHtml = await Promise.all(
+                modules.map(async function (module) {
+                    let lessonsHtml =
+                        "<p>Loading lessons...</p>";
 
-            modules.forEach(module => {
-
-                const moduleDiv =
-                    document.createElement("div");
-
-                moduleDiv.className = "course-module";
-
-                moduleDiv.innerHTML = `
-                    <h3>
-                        Module ${module.module_order}:
-                        ${module.module_name}
-                    </h3>
-
-                    <p>
-                        ${module.description || ""}
-                    </p>
-
-                    <div class="lesson-list">
-                        <p>Loading lessons...</p>
-                    </div>
-                `;
-
-                courseContent.appendChild(moduleDiv);
-
-                const lessonList =
-                    moduleDiv.querySelector(".lesson-list");
-
-                fetch(
-                    "http://127.0.0.1:5000/modules/" +
-                    module.module_id +
-                    "/lessons",
-                    {
-                        headers: {
-                            "Authorization": "Bearer " + token
-                        }
-                    }
-                )
-                .then(response => {
-
-                    if (!response.ok) {
-                        throw new Error("Failed to load lessons");
-                    }
-
-                    return response.json();
-                })
-                .then(lessonData => {
-
-                    console.log(
-                        "Lessons API:",
-                        lessonData
-                    );
-
-                    const lessons =
-                        lessonData.data ||
-                        lessonData.lessons ||
-                        [];
-
-                    if (lessons.length === 0) {
-
-                        lessonList.innerHTML =
-                            "<p>No lessons available.</p>";
-
-                        return;
-                    }
-
-                    lessonList.innerHTML = "";
-
-                    lessons.forEach(lesson => {
-
-                        const lessonDiv =
-                            document.createElement("div");
-
-                        lessonDiv.className =
-                            "course-lesson";
-
-                        lessonDiv.innerHTML = `
-                            <span>
-                                ${lesson.lesson_order}.
-                                ${lesson.lesson_name}
-                            </span>
-
-                            <button
-                                class="complete-lesson-btn"
-                                data-lesson-id="${lesson.lesson_id}">
-                                Complete
-                            </button>
-                        `;
-
-                        lessonList.appendChild(
-                            lessonDiv
+                    try {
+                        lessonsHtml =
+                            await renderLessons(
+                                module.module_id
+                            );
+                    } catch (error) {
+                        console.error(
+                            "Lesson loading error:",
+                            error
                         );
-                    });
 
+                        lessonsHtml =
+                            "<p>Unable to load lessons.</p>";
+                    }
+
+                    return `
+                        <article class="course-module">
+                            <h3>
+                                Module ${escapeHtml(
+                                    module.module_order
+                                )}:
+                                ${escapeHtml(
+                                    module.module_name
+                                )}
+                            </h3>
+
+                            <p>
+                                ${escapeHtml(
+                                    module.description
+                                )}
+                            </p>
+
+                            <div class="lesson-list">
+                                ${lessonsHtml}
+                            </div>
+                        </article>
+                    `;
                 })
-                .catch(error => {
+            );
 
-                    console.error(
-                        "Lesson error:",
-                        error
-                    );
-
-                    lessonList.innerHTML =
-                        "<p>Unable to load lessons.</p>";
-                });
-            });
-
-        })
-        .catch(error => {
-
+            courseContentElement.innerHTML =
+                moduleHtml.join("");
+        } catch (error) {
             console.error(
-                "Module error:",
+                "Course content loading error:",
                 error
             );
 
-            courseContent.innerHTML =
-                "<p>Unable to load course content.</p>";
-        });
+            courseContentElement.innerHTML =
+                "<p>Unable to load course content: " +
+                escapeHtml(error.message) +
+                "</p>";
+        }
     }
-}
 
+    courseContentElement.addEventListener(
+        "click",
+        async function (event) {
+            const completeButton =
+                event.target.closest(
+                    ".complete-lesson-btn"
+                );
+
+            if (!completeButton) {
+                return;
+            }
+
+            const lessonId =
+                completeButton.dataset.lessonId;
+
+            const statusElement =
+                document.querySelector(
+                    "[data-status-for='" +
+                    lessonId +
+                    "']"
+                );
+
+            completeButton.disabled = true;
+            completeButton.textContent =
+                "Saving...";
+
+            try {
+                await apiRequest(
+                    "/api/lessons/" +
+                    lessonId +
+                    "/complete",
+                    {
+                        method: "POST"
+                    }
+                );
+
+                completeButton.textContent =
+                    "Completed";
+
+                if (statusElement) {
+                    statusElement.textContent =
+                        " ✓";
+                    statusElement.style.color =
+                        "#27ae60";
+                }
+            } catch (error) {
+                completeButton.disabled = false;
+                completeButton.textContent =
+                    "Mark Lesson Complete";
+
+                if (statusElement) {
+                    statusElement.textContent =
+                        " " + error.message;
+                    statusElement.style.color =
+                        "#c0392b";
+                }
+            }
+        }
+    );
+
+    loadCourseContent();
+}
 
 /* ================================
    NOTIFICATION MODULE

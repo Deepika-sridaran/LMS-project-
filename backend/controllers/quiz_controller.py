@@ -3,6 +3,7 @@ from flask_jwt_extended import get_jwt_identity
 from sqlalchemy import text
 
 from extensions import db
+from models.question import Question
 
 from services.quiz_service import (
     get_quiz_by_id,
@@ -12,6 +13,7 @@ from services.quiz_service import (
     update_quiz,
     delete_quiz,
     add_question,
+    update_question,
     delete_question
 )
 
@@ -427,13 +429,96 @@ def create_new_question(quiz_id, data):
     }), 201
 
 
-def delete_existing_question(question_id):
+def update_existing_question(question_id, data):
     user_id = get_current_user_id()
 
-    question = db.session.get(
-        text,
-        question_id
-    ) if False else None
+    result = db.session.execute(
+        text("""
+            SELECT q.question_id, q.quiz_id, z.course_id
+            FROM questions q
+            JOIN quizzes z ON z.quiz_id = q.quiz_id
+            WHERE q.question_id = :question_id
+        """),
+        {"question_id": question_id}
+    ).fetchone()
+
+    if result is None:
+        return jsonify({
+            "success": False,
+            "message": "Question not found"
+        }), 404
+
+    if get_user_role(user_id) != 2:
+        return jsonify({
+            "success": False,
+            "message": "Only trainers can update questions"
+        }), 403
+
+    if not trainer_owns_course(
+        user_id,
+        result[2]
+    ):
+        return jsonify({
+            "success": False,
+            "message": "You do not own this course"
+        }), 403
+
+    required_fields = [
+        "question_text",
+        "option_a",
+        "option_b",
+        "option_c",
+        "option_d",
+        "correct_option",
+        "marks"
+    ]
+
+    for field in required_fields:
+        if field not in data:
+            return jsonify({
+                "success": False,
+                "message": f"{field} is required"
+            }), 400
+
+    correct_option = str(
+        data["correct_option"]
+    ).upper()
+
+    if correct_option not in [
+        "A",
+        "B",
+        "C",
+        "D"
+    ]:
+        return jsonify({
+            "success": False,
+            "message": "correct_option must be A, B, C or D"
+        }), 400
+
+    question = Question.query.get(question_id)
+
+    question = update_question(
+        question=question,
+        question_text=data["question_text"],
+        option_a=data["option_a"],
+        option_b=data["option_b"],
+        option_c=data["option_c"],
+        option_d=data["option_d"],
+        correct_option=correct_option,
+        marks=data["marks"]
+    )
+
+    return jsonify({
+        "success": True,
+        "message": "Question updated successfully",
+        "data": {
+            "question_id": question.question_id
+        }
+    }), 200
+
+
+def delete_existing_question(question_id):
+    user_id = get_current_user_id()
 
     result = db.session.execute(
         text("""

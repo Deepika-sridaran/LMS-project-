@@ -112,6 +112,29 @@ def add_question(
     return question
 
 
+def update_question(
+    question,
+    question_text,
+    option_a,
+    option_b,
+    option_c,
+    option_d,
+    correct_option,
+    marks
+):
+    question.question_text = question_text
+    question.option_a = option_a
+    question.option_b = option_b
+    question.option_c = option_c
+    question.option_d = option_d
+    question.correct_option = correct_option
+    question.marks = marks
+
+    db.session.commit()
+
+    return question
+
+
 def delete_question(question_id):
     question = Question.query.get(question_id)
 

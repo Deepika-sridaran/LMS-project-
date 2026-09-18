@@ -4,6 +4,8 @@ from sqlalchemy import text
 
 from extensions import db
 
+from models.enrollment import Enrollment
+
 from services.assignment_service import (
     get_assignments_by_course,
     get_assignment_by_id,
@@ -11,6 +13,8 @@ from services.assignment_service import (
     update_assignment,
     delete_assignment
 )
+
+from services.notification_service import create_notification
 
 
 def get_current_user_id():
@@ -222,6 +226,21 @@ def create_new_assignment(course_id, data):
         deadline=data["deadline"],
         allowed_file_types=data.get("allowed_file_types")
     )
+
+    # Create a notification for every active student
+    # enrolled in this course.
+    active_enrollments = Enrollment.query.filter_by(
+        course_id=course_id,
+        status="ACTIVE"
+    ).all()
+
+    for enrollment in active_enrollments:
+        create_notification(
+            user_id=enrollment.student_id,
+            title="New Assignment",
+            message=f"A new assignment '{assignment.title}' has been added to your course.",
+            notification_type="NEW_ASSIGNMENT"
+        )
 
     return jsonify({
         "success": True,
