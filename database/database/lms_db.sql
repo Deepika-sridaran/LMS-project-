@@ -230,7 +230,7 @@ CREATE TABLE `lesson_progress` (
   KEY `fk_progress_lesson` (`lesson_id`),
   CONSTRAINT `fk_progress_lesson` FOREIGN KEY (`lesson_id`) REFERENCES `lessons` (`lesson_id`),
   CONSTRAINT `fk_progress_student` FOREIGN KEY (`student_id`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=118 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=80 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -546,7 +546,7 @@ CREATE TABLE `roles` (
   `role_name` varchar(50) NOT NULL,
   PRIMARY KEY (`role_id`),
   UNIQUE KEY `role_name` (`role_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -624,7 +624,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Admin User','admin@lms.com','Admin@123',1,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:18:58'),(2,'Arun Trainer','arun.trainer@lms.com','Trainer@123',2,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:18:42'),(3,'Priya Trainer','priya.trainer@lms.com','Trainer@123',2,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:18:42'),(4,'Rahul Trainer','rahul.trainer@lms.com','Trainer@123',2,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:18:42'),(5,'Divya Trainer','divya.trainer@lms.com','Trainer@123',2,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:18:42'),(6,'Karthik Trainer','karthik.trainer@lms.com','Trainer@123',2,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:18:42'),(7,'Sathish Kumar','sathish@lms.com','Sathish@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(8,'Vijay Kumar','vijay@lms.com','Vijay@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(9,'Anjali Sharma','anjali@lms.com','Anjali@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(10,'Ravi Shankar','ravi@lms.com','Ravi@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(11,'Meena Raj','meena@lms.com','Meena@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(12,'Ajay Kumar','ajay@lms.com','Ajay@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(13,'Sneha Reddy','sneha@lms.com','Sneha@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(14,'Manoj Kumar','manoj@lms.com','Manoj@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(15,'Deepa Mohan','deepa@lms.com','Deepa@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(16,'Hari Prasad','hari@lms.com','Hari@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(17,'Lakshmi Devi','lakshmi@lms.com','Lakshmi@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(18,'Naveen Raj','naveen@lms.com','Naveen@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(19,'Pooja Singh','pooja@lms.com','Pooja@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(20,'Vignesh Kumar','vignesh@lms.com','Vignesh@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(21,'Aishwarya N','aishwarya@lms.com','Aishwarya@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10');
+INSERT INTO `users` VALUES (1,'Admin User','admin@lms.com','$2b$12$hHpBo.SqHI0p33kPjmhSEenu01kkeZ.mxfHjl9dbPEC3LInlSdH3a',1,'ACTIVE','2026-08-29 16:02:09','2026-09-17 11:13:15'),(2,'Arun Trainer','arun.trainer@lms.com','$2b$12$9rs8mri8aOavifWB3QnI3uz/yNqbGT.3pe3z9EHWjJb8OD4cfDBz6',2,'ACTIVE','2026-08-29 16:02:09','2026-09-17 11:13:46'),(3,'Priya Trainer','priya.trainer@lms.com','Trainer@123',2,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:18:42'),(4,'Rahul Trainer','rahul.trainer@lms.com','Trainer@123',2,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:18:42'),(5,'Divya Trainer','divya.trainer@lms.com','Trainer@123',2,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:18:42'),(6,'Karthik Trainer','karthik.trainer@lms.com','Trainer@123',2,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:18:42'),(7,'Sathish Kumar','sathish@lms.com','$2b$12$5kRYdWrjH.e1SJNvZFLbXeQsyz2ItxpCWtQBQiG.8/VrznojpNvnu',3,'ACTIVE','2026-08-29 16:02:09','2026-09-17 15:01:42'),(8,'Vijay Kumar','vijay@lms.com','Vijay@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(9,'Anjali Sharma','anjali@lms.com','Anjali@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(10,'Ravi Shankar','ravi@lms.com','Ravi@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(11,'Meena Raj','meena@lms.com','Meena@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(12,'Ajay Kumar','ajay@lms.com','Ajay@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(13,'Sneha Reddy','sneha@lms.com','Sneha@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(14,'Manoj Kumar','manoj@lms.com','Manoj@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(15,'Deepa Mohan','deepa@lms.com','Deepa@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(16,'Hari Prasad','hari@lms.com','Hari@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(17,'Lakshmi Devi','lakshmi@lms.com','Lakshmi@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(18,'Naveen Raj','naveen@lms.com','Naveen@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(19,'Pooja Singh','pooja@lms.com','Pooja@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(20,'Vignesh Kumar','vignesh@lms.com','Vignesh@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10'),(21,'Aishwarya N','aishwarya@lms.com','Aishwarya@123',3,'ACTIVE','2026-08-29 16:02:09','2026-09-03 14:17:10');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -637,4 +637,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-03 20:04:12
+-- Dump completed on 2026-09-18 11:31:07
