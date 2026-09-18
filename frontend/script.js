@@ -329,7 +329,7 @@ if (quizForm && startQuizButton) {
 
         if (!quizId) {
             showMessage(
-                "Quiz ID is missing. Open the page using ?quiz_id=22."
+                "Quiz ID is missing. Open the quiz from the course details page."
             );
             startQuizButton.disabled = true;
             return;
@@ -1250,83 +1250,89 @@ if (addQuestionBtn) {
 }
 
 if (window.location.pathname.includes("course-details.html")) {
+    const API_BASE_URL = "http://127.0.0.1:5000";
     const params = new URLSearchParams(window.location.search);
     const courseKey = params.get("course");
+    const token = localStorage.getItem("access_token");
 
-    // Replace these numbers with the actual IDs from your database.
     const courseIds = {
         python: 1,
         webdesign: 2,
         datastructures: 3
     };
 
-    const courseId = courseIds[courseKey];
-    const enrollButton = document.getElementById("enroll-course-btn");
-    const enrollMessage = document.getElementById("enroll-message");
-    const token = localStorage.getItem("access_token");
+    const backendCourseId = courseIds[courseKey];
+    const takeQuizLink = document.getElementById("take-quiz-link");
+    const quizLinkMessage =
+        document.getElementById("quiz-link-message");
 
-    if (enrollButton) {
-        enrollButton.addEventListener("click", async function () {
-            if (!token) {
-                enrollMessage.textContent = "Please log in as a student first.";
-                enrollMessage.style.color = "#c0392b";
-                return;
-            }
+    async function loadCourseQuizLink() {
+        if (!takeQuizLink || !quizLinkMessage) {
+            return;
+        }
 
-            if (!courseId) {
-                enrollMessage.textContent = "Course ID was not found.";
-                enrollMessage.style.color = "#c0392b";
-                return;
-            }
+        if (!token) {
+            takeQuizLink.style.display = "none";
+            quizLinkMessage.textContent =
+                "Please log in to view quizzes.";
+            return;
+        }
 
-            enrollButton.disabled = true;
-            enrollButton.textContent = "Enrolling...";
-            enrollMessage.textContent = "";
+        if (!backendCourseId) {
+            takeQuizLink.style.display = "none";
+            quizLinkMessage.textContent =
+                "Course ID was not found.";
+            return;
+        }
 
-            try {
-                const response = await fetch(
-                    "http://127.0.0.1:5000/api/enrollments/",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": "Bearer " + token
-                        },
-                        body: JSON.stringify({
-                            course_id: Number(courseId)
-                        })
+        try {
+            const response = await fetch(
+                API_BASE_URL +
+                "/api/courses/" +
+                backendCourseId +
+                "/quizzes",
+                {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token
                     }
-                );
-
-                const data = await response.json().catch(function (){
-                    return{};
-                });
-
-                if (response.ok || response.status === 409) {
-                    enrollMessage.textContent =
-                        data.message || "Enrollment successful!";
-                    enrollMessage.style.color = "#27ae60";
-
-                    enrollButton.textContent = "Enrolled";
-                    enrollButton.disabled = true;
-                } else {
-                    enrollMessage.textContent =
-                        data.message || "Enrollment failed. Status: " + response.status;
-                    enrollMessage.style.color = "#c0392b";
-
-                    enrollButton.textContent = "Enroll";
-                    enrollButton.disabled = false;
                 }
-            } catch (error) {
-                enrollMessage.textContent =
-                    "Could not reach the enrollment API.";
-                enrollMessage.style.color = "#c0392b";
+            );
 
-                enrollButton.textContent = "Enroll";
-                enrollButton.disabled = false;
+            const result = await response.json();
+
+            if (!response.ok) {
+                takeQuizLink.style.display = "none";
+                quizLinkMessage.textContent =
+                    result.message || "Could not load quizzes.";
+                return;
             }
-        });
+
+            const quizzes = result.data || [];
+
+            if (quizzes.length === 0) {
+                takeQuizLink.style.display = "none";
+                quizLinkMessage.textContent =
+                    "No quiz is available for this course.";
+                return;
+            }
+
+            const firstQuizId = quizzes[0].quiz_id;
+
+            takeQuizLink.href =
+                "quiz.html?quiz_id=" + firstQuizId;
+
+            quizLinkMessage.textContent =
+                quizzes[0].title || "Quiz available";
+            quizLinkMessage.style.color = "#27ae60";
+        } catch (error) {
+            takeQuizLink.style.display = "none";
+            quizLinkMessage.textContent =
+                "Could not load the course quiz.";
+        }
     }
+
+    loadCourseQuizLink();
 }
 
 const createAssignmentForm = document.getElementById("create-assignment-form");
