@@ -2310,29 +2310,6 @@ if (courseContentElement) {
         return result.lessons || result.data || [];
     }
 
-    async function loadCourseProgress(courseId) {
-    const result = await apiRequest(
-        "/api/courses/" +
-        courseId +
-        "/progress"
-    );
-
-    return result.data;
-    }
-        const progress =
-            await loadCourseProgress(courseId);
-
-        const progressElement =
-            document.getElementById(
-            "course-progress"
-        );
-
-        if (progressElement) {
-            progressElement.textContent =
-            "Course progress: " +
-            JSON.stringify(progress);
-        }
-
     function renderMaterials(materials) {
         if (!materials.length) {
             return "<p class='no-materials'>No materials available.</p>";
