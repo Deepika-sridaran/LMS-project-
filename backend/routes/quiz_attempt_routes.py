@@ -4,7 +4,8 @@ from flask_jwt_extended import jwt_required
 from controllers.quiz_attempt_controller import (
     start_quiz_attempt,
     get_single_attempt,
-    submit_quiz_attempt
+    submit_quiz_attempt,
+    get_quiz_results_controller
 )
 
 
@@ -40,3 +41,12 @@ def get_attempt_route(attempt_id):
 @jwt_required()
 def submit_attempt_route(attempt_id):
     return submit_quiz_attempt(attempt_id)
+
+
+@quiz_attempt_bp.route(
+    "/quizzes/<int:quiz_id>/results",
+    methods=["GET"]
+)
+@jwt_required()
+def quiz_results_route(quiz_id):
+    return get_quiz_results_controller(quiz_id)

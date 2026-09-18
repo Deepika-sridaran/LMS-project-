@@ -6,7 +6,8 @@ class QuizAttempt(db.Model):
 
     attempt_id = db.Column(
         db.Integer,
-        primary_key=True
+        primary_key=True,
+        autoincrement=True
     )
 
     quiz_id = db.Column(
@@ -26,7 +27,7 @@ class QuizAttempt(db.Model):
 
     started_at = db.Column(
         db.DateTime,
-        nullable=True
+        nullable=False
     )
 
     submitted_at = db.Column(
@@ -41,10 +42,6 @@ class QuizAttempt(db.Model):
 
     status = db.Column(
         db.String(20),
+        nullable=False,
         default="IN_PROGRESS"
-    )
-
-    passed = db.Column(
-        db.Boolean,
-        nullable=True
     )

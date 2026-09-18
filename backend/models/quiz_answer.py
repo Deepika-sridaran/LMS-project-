@@ -19,12 +19,13 @@ class QuizAnswer(db.Model):
         nullable=False
     )
 
-    selected_answer = db.Column(
+    selected_option = db.Column(
         db.String(1),
-        nullable=False
+        nullable=True
     )
 
     marks_awarded = db.Column(
-        db.Numeric(5, 2),
-        nullable=True
+        db.Numeric(10, 2),
+        nullable=True,
+        default=0.00
     )

@@ -33,10 +33,7 @@ def start_attempt(quiz_id, student_id):
     if quiz is None:
         return None, "Quiz not found"
 
-    if not is_student_enrolled(
-        student_id,
-        quiz.course_id
-    ):
+    if not is_student_enrolled(student_id, quiz.course_id):
         return None, "You are not enrolled in this course"
 
     existing_attempts = QuizAttempt.query.filter_by(
@@ -99,10 +96,9 @@ def submit_attempt(attempt_id, student_id, answers):
         and now > attempt.started_at
         + timedelta(minutes=quiz.time_limit)
     ):
-        attempt.status = "SUBMITTED"
+        attempt.status = "FAILED"
         attempt.submitted_at = now
         attempt.score = 0
-        attempt.passed = False
 
         db.session.commit()
 
@@ -117,8 +113,8 @@ def submit_attempt(attempt_id, student_id, answers):
     for answer in answers:
         question_id = answer.get("question_id")
 
-        selected_answer = str(
-            answer.get("selected_answer", "")
+        selected_option = str(
+            answer.get("selected_option", "")
         ).upper()
 
         question = next(
@@ -132,24 +128,19 @@ def submit_attempt(attempt_id, student_id, answers):
         if question is None:
             continue
 
-        if selected_answer not in [
-            "A",
-            "B",
-            "C",
-            "D"
-        ]:
+        if selected_option not in ["A", "B", "C", "D"]:
             continue
 
         marks_awarded = 0
 
-        if selected_answer == question.correct_option:
+        if selected_option == question.correct_option:
             marks_awarded = float(question.marks)
             total_score += marks_awarded
 
         quiz_answer = QuizAnswer(
             attempt_id=attempt.attempt_id,
             question_id=question.question_id,
-            selected_answer=selected_answer,
+            selected_option=selected_option,
             marks_awarded=marks_awarded
         )
 
@@ -169,15 +160,60 @@ def submit_attempt(attempt_id, student_id, answers):
 
     attempt.score = percentage
 
-    attempt.passed = (
-        percentage >= float(
-            quiz.passing_score
-        )
-    )
+    if percentage >= float(quiz.passing_score):
+        attempt.status = "PASSED"
+    else:
+        attempt.status = "FAILED"
 
-    attempt.status = "SUBMITTED"
     attempt.submitted_at = now
 
     db.session.commit()
 
     return attempt, None
+
+
+def get_quiz_results(quiz_id, student_id):
+    quiz = Quiz.query.get(quiz_id)
+
+    if quiz is None:
+        return None, "Quiz not found"
+
+    attempts = QuizAttempt.query.filter_by(
+        quiz_id=quiz_id,
+        student_id=student_id
+    ).order_by(
+        QuizAttempt.attempt_number.asc()
+    ).all()
+
+    results = []
+
+    for attempt in attempts:
+        results.append({
+            "attempt_id": attempt.attempt_id,
+            "attempt_number": attempt.attempt_number,
+            "score": (
+                float(attempt.score)
+                if attempt.score is not None
+                else None
+            ),
+            "status": attempt.status,
+            "passed": attempt.status == "PASSED",
+            "started_at": (
+                attempt.started_at.isoformat()
+                if attempt.started_at
+                else None
+            ),
+            "submitted_at": (
+                attempt.submitted_at.isoformat()
+                if attempt.submitted_at
+                else None
+            )
+        })
+
+    return {
+        "quiz_id": quiz.quiz_id,
+        "quiz_title": quiz.title,
+        "passing_score": float(quiz.passing_score),
+        "maximum_attempts": quiz.maximum_attempts,
+        "attempts": results
+    }, None

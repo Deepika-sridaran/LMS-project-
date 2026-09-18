@@ -4,7 +4,8 @@ from flask_jwt_extended import get_jwt_identity
 from services.quiz_attempt_service import (
     start_attempt,
     get_attempt,
-    submit_attempt
+    submit_attempt,
+    get_quiz_results
 )
 
 
@@ -84,7 +85,7 @@ def get_single_attempt(attempt_id):
                 else None
             ),
             "status": attempt.status,
-            "passed": attempt.passed
+            "passed": attempt.status == "PASSED"
         }
     }), 200
 
@@ -120,7 +121,7 @@ def submit_quiz_attempt(attempt_id):
         "data": {
             "attempt_id": attempt.attempt_id,
             "score": float(attempt.score),
-            "passed": attempt.passed,
+            "passed": attempt.status == "PASSED",
             "status": attempt.status,
             "submitted_at": (
                 attempt.submitted_at.isoformat()
@@ -128,4 +129,24 @@ def submit_quiz_attempt(attempt_id):
                 else None
             )
         }
+    }), 200
+
+
+def get_quiz_results_controller(quiz_id):
+    student_id = get_current_student_id()
+
+    results, error = get_quiz_results(
+        quiz_id=quiz_id,
+        student_id=student_id
+    )
+
+    if error:
+        return jsonify({
+            "success": False,
+            "message": error
+        }), 404
+
+    return jsonify({
+        "success": True,
+        "data": results
     }), 200
