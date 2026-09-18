@@ -50,3 +50,39 @@ def get_enrollment_route(enrollment_id):
 @role_required("Student")
 def cancel_enrollment_route(enrollment_id):
     return cancel_enrollment(enrollment_id)
+
+from flask import jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from models.enrollment import Enrollment
+from models.course import Course
+
+
+@jwt_required()
+def get_my_enrollments():
+    student_id = int(get_jwt_identity())
+
+    enrollments = (
+        Enrollment.query
+        .join(Course, Enrollment.course_id == Course.course_id)
+        .filter(Enrollment.student_id == student_id)
+        .all()
+    )
+
+    return jsonify({
+        "success": True,
+        "courses": [
+            {
+                "enrollment_id": enrollment.enrollment_id,
+                "course_id": enrollment.course_id,
+                "course_title": course.title,
+                "status": enrollment.status,
+                "enrolled_at": enrollment.enrolled_at.isoformat()
+                    if enrollment.enrolled_at else None
+            }
+            for enrollment, course in [
+                (enrollment, Course.query.get(enrollment.course_id))
+                for enrollment in enrollments
+            ]
+        ]
+    }), 200
+

@@ -1,12 +1,13 @@
 from flask import jsonify, send_file
 from flask_jwt_extended import get_jwt_identity
+from extensions import db
+from sqlalchemy import text
 
 from services.certificate_service import (
     get_student_certificates,
     get_certificate_by_id,
     verify_certificate,
-    generate_certificate_pdf
-)
+    generate_certificate_pdf)
 
 
 def current_user_id():
@@ -19,20 +20,36 @@ def current_user_id():
 
 
 def certificate_dict(certificate):
+
+    details = db.session.execute(
+        text("""
+            SELECT
+                u.full_name,
+                co.title
+            FROM users u
+            JOIN courses co
+                ON co.course_id = :course_id
+            WHERE u.user_id = :student_id
+        """),
+        {
+            "student_id": certificate.student_id,
+            "course_id": certificate.course_id
+        }
+    ).fetchone()
+
     return {
         "certificate_id": certificate.certificate_id,
-        "certificate_number": (
-            certificate.certificate_number
-        ),
+        "certificate_number": certificate.certificate_number,
         "student_id": certificate.student_id,
         "course_id": certificate.course_id,
+        "student_name": details[0] if details else "",
+        "course_title": details[1] if details else "",
         "issued_at": (
             certificate.issued_at.isoformat()
             if certificate.issued_at
             else None
         )
     }
-
 
 def list_certificates():
     student_id = current_user_id()
@@ -155,3 +172,8 @@ def verify_public_certificate(
             )
         }
     }), 200
+
+
+
+
+

@@ -4,20 +4,17 @@ if (window.location.pathname.includes("course-details.html")) {
     const courseId = params.get("course");
 
     const courseData = {
-        python: {
-            title: "Introduction to Python",
+        python: { courseId: 1, title: "Python Programming for Beginners",
             category: "Programming",
             rating: "4.5 / 5",
             description: "Learn the basics of Python Programming from Scratch."
         },
-        webdesign: {
-            title: "Web Design Basics",
+        webdesign: { courseId: 8, title: "HTML CSS and JavaScript",
             category: "Design",
             rating: "4.2 / 5",
             description: "Understand HTML, CSS and Design Fundamentals for the web."
         },
-        datastructures: {
-            title: "Data Structures",
+        datastructures: { courseId: 6, title: "SQL Mastery",
             category: "Programming",
             rating: "4.8 / 5",
             description: "Master arrays, linked lists, trees and more."
@@ -1418,3 +1415,723 @@ if (forgetPasswordForm) {
         message.style.color = "#27ae60";
     });
 }
+
+
+// ================= DASHBOARD WELCOME =================
+
+const welcomeUser = document.getElementById("welcome-user");
+
+if (welcomeUser) {
+    const fullName = localStorage.getItem("user_full_name");
+
+    if (fullName) {
+        welcomeUser.textContent = "Welcome, " + fullName;
+    }
+}
+
+
+
+
+// ================= MY CERTIFICATES =================
+
+const certificatesContainer = document.getElementById("certificates-container");
+
+if (certificatesContainer) {
+
+    const token = localStorage.getItem("access_token");
+
+    const params = new URLSearchParams(window.location.search);
+    const selectedCourseId = params.get("course_id");
+
+    if (!token) {
+
+        certificatesContainer.innerHTML =
+            "<p>Please login first.</p>";
+
+    } else {
+
+        fetch("http://127.0.0.1:5000/api/certificates", {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        })
+        .then(response => {
+
+            if (!response.ok) {
+                throw new Error("Certificate API failed");
+            }
+
+            return response.json();
+        })
+        .then(data => {
+
+            if (!data.success || !data.data) {
+
+                certificatesContainer.innerHTML =
+                    "<p>No certificates available.</p>";
+
+                return;
+            }
+
+            let certificates = data.data;
+
+            // Show only the selected course certificate
+            if (selectedCourseId) {
+
+                certificates = certificates.filter(
+                    certificate =>
+                        String(certificate.course_id) === String(selectedCourseId)
+                );
+            }
+
+            if (certificates.length === 0) {
+
+                certificatesContainer.innerHTML =
+                    "<p>No certificate available for this course.</p>";
+
+                return;
+            }
+
+            certificatesContainer.innerHTML = "";
+
+            certificates.forEach(certificate => {
+
+                const certificateDiv = document.createElement("div");
+
+                certificateDiv.className = "certificate";
+
+                certificateDiv.innerHTML = `
+                    <h2>Certificate of Completion</h2>
+
+                    <p>This is to certify that</p>
+
+                    <h2>${certificate.student_name}</h2>
+
+                    <p>has successfully completed the course</p>
+
+                    <h3>${certificate.course_title}</h3>
+
+                    <p>
+                        Certificate No:
+                        ${certificate.certificate_number}
+                    </p>
+
+                    <p>
+                        Issued on:
+                        ${new Date(certificate.issued_at).toLocaleDateString()}
+                    </p>
+
+                    <br>
+
+                    <button
+                        class="download-certificate-btn"
+                        data-certificate-id="${certificate.certificate_id}">
+                        Download Certificate
+                    </button>
+                `;
+
+                certificatesContainer.appendChild(certificateDiv);
+            });
+
+        })
+        .catch(error => {
+
+            console.error("Certificate error:", error);
+
+            certificatesContainer.innerHTML =
+                "<p>Unable to load certificates.</p>";
+        });
+    }
+}
+
+
+// ================= DOWNLOAD CERTIFICATE =================
+
+document.addEventListener("click", function(event) {
+
+    if (!event.target.classList.contains("download-certificate-btn")) {
+        return;
+    }
+
+    const certificateId =
+        event.target.getAttribute("data-certificate-id");
+
+    const token =
+        localStorage.getItem("access_token");
+
+    if (!token) {
+        alert("Please login first.");
+        return;
+    }
+
+    fetch(
+        "http://127.0.0.1:5000/api/certificates/" +
+        certificateId +
+        "/download",
+        {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        }
+    )
+    .then(response => {
+
+        if (!response.ok) {
+            throw new Error("Certificate download failed");
+        }
+
+        return response.blob();
+    })
+    .then(blob => {
+
+        const url = window.URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "certificate.pdf";
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        link.remove();
+
+        window.URL.revokeObjectURL(url);
+    })
+    .catch(error => {
+
+        console.error("Download error:", error);
+
+        alert("Unable to download certificate.");
+    });
+
+});
+
+
+/* ================= MY ENROLLMENTS ================= */
+
+const enrollmentsBody = document.getElementById("enrollments-body");
+
+if (enrollmentsBody) {
+
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+
+        enrollmentsBody.innerHTML = `
+            <tr>
+                <td colspan="4">Please login first.</td>
+            </tr>
+        `;
+
+    } else {
+
+        fetch("http://127.0.0.1:5000/api/enrollments/my", {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        })
+        .then(response => {
+
+            if (!response.ok) {
+                throw new Error("Failed to load enrollments");
+            }
+
+            return response.json();
+        })
+        .then(data => {
+
+            if (!data.success || !data.courses || data.courses.length === 0) {
+
+                enrollmentsBody.innerHTML = `
+                    <tr>
+                        <td colspan="4">No enrollments found.</td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+            enrollmentsBody.innerHTML = "";
+
+            data.courses.forEach(course => {
+
+                const row = document.createElement("tr");
+
+                const enrolledDate = course.enrolled_at
+                    ? new Date(course.enrolled_at).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric"
+                    })
+                    : "-";
+
+                let action = "--";
+
+                if (course.status === "COMPLETED") {
+
+                    action = `
+                        <a href="certificate.html?course_id=${course.course_id}">
+                            View Certificate
+                        </a>
+                    `;
+
+                } else if (course.status === "ACTIVE") {
+
+                    action = `
+                        <a href="course-details.html?course_id=${course.course_id}">
+                            Continue Learning
+                        </a>
+                    `;
+                }
+
+                row.innerHTML = `
+                    <td>${course.course_title}</td>
+                    <td>${enrolledDate}</td>
+                    <td>
+                        <span class="status-badge">
+                            ${course.status}
+                        </span>
+                    </td>
+                    <td>${action}</td>
+                `;
+
+                enrollmentsBody.appendChild(row);
+            });
+
+        })
+        .catch(error => {
+
+            console.error("Enrollment error:", error);
+
+            enrollmentsBody.innerHTML = `
+                <tr>
+                    <td colspan="4">
+                        Unable to load enrollments.
+                    </td>
+                </tr>
+            `;
+        });
+    }
+}
+
+
+
+
+/* ================= COURSE CERTIFICATE CHECK ================= */
+
+const viewCertificateBtn = document.getElementById("view-certificate-btn");
+const certificateMessage = document.getElementById("certificate-message");
+
+if (viewCertificateBtn && certificateMessage) {
+
+    const params = new URLSearchParams(window.location.search);
+    const courseKey = params.get("course");
+
+    const courseDataForCertificate = {
+        python: 1,
+        webdesign: 8,
+        datastructures: 6
+    };
+
+    const actualCourseId = courseDataForCertificate[courseKey];
+    const token = localStorage.getItem("access_token");
+
+    viewCertificateBtn.addEventListener("click", function () {
+
+        if (!token) {
+            certificateMessage.textContent = "Please login first.";
+            return;
+        }
+
+        if (!actualCourseId) {
+            certificateMessage.textContent = "Course information not found.";
+            return;
+        }
+
+        fetch(
+            "http://127.0.0.1:5000/api/courses/" +
+            actualCourseId +
+            "/progress",
+            {
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        )
+        .then(response => {
+
+            if (!response.ok) {
+                throw new Error("Progress API failed");
+            }
+
+            return response.json();
+        })
+        .then(data => {
+
+            const progress = Number(
+                data.progress_percentage ||
+                data.progress ||
+                0
+            );
+
+            if (progress >= 100) {
+
+                window.location.href =
+                    "certificate.html?course_id=" +
+                    actualCourseId;
+
+            } else {
+
+                certificateMessage.textContent =
+                    "Please complete the course to get the certificate.";
+            }
+        })
+        .catch(error => {
+
+            console.error("Certificate eligibility error:", error);
+
+            certificateMessage.textContent =
+                "Unable to check course completion.";
+        });
+    });
+}
+
+
+/* ================= COURSE MODULES AND LESSONS ================= */
+
+const courseContent = document.getElementById("course-content");
+
+if (courseContent) {
+
+    const params = new URLSearchParams(window.location.search);
+    const courseId = params.get("course_id");
+    const token = localStorage.getItem("access_token");
+
+    if (!courseId) {
+
+        courseContent.innerHTML =
+            "<p>Course information not found.</p>";
+
+    } else if (!token) {
+
+        courseContent.innerHTML =
+            "<p>Please login first.</p>";
+
+    } else {
+
+        fetch(
+            "http://127.0.0.1:5000/courses/" +
+            courseId +
+            "/modules",
+            {
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        )
+        .then(response => {
+
+            if (!response.ok) {
+                throw new Error("Failed to load modules");
+            }
+
+            return response.json();
+        })
+        .then(data => {
+
+            console.log("Modules API:", data);
+
+            const modules =
+                data.data || data.modules || [];
+
+            if (modules.length === 0) {
+
+                courseContent.innerHTML =
+                    "<p>No modules available.</p>";
+
+                return;
+            }
+
+            courseContent.innerHTML = "";
+
+            modules.forEach(module => {
+
+                const moduleDiv =
+                    document.createElement("div");
+
+                moduleDiv.className = "course-module";
+
+                moduleDiv.innerHTML = `
+                    <h3>
+                        Module ${module.module_order}:
+                        ${module.module_name}
+                    </h3>
+
+                    <p>
+                        ${module.description || ""}
+                    </p>
+
+                    <div class="lesson-list">
+                        <p>Loading lessons...</p>
+                    </div>
+                `;
+
+                courseContent.appendChild(moduleDiv);
+
+                const lessonList =
+                    moduleDiv.querySelector(".lesson-list");
+
+                fetch(
+                    "http://127.0.0.1:5000/modules/" +
+                    module.module_id +
+                    "/lessons",
+                    {
+                        headers: {
+                            "Authorization": "Bearer " + token
+                        }
+                    }
+                )
+                .then(response => {
+
+                    if (!response.ok) {
+                        throw new Error("Failed to load lessons");
+                    }
+
+                    return response.json();
+                })
+                .then(lessonData => {
+
+                    console.log(
+                        "Lessons API:",
+                        lessonData
+                    );
+
+                    const lessons =
+                        lessonData.data ||
+                        lessonData.lessons ||
+                        [];
+
+                    if (lessons.length === 0) {
+
+                        lessonList.innerHTML =
+                            "<p>No lessons available.</p>";
+
+                        return;
+                    }
+
+                    lessonList.innerHTML = "";
+
+                    lessons.forEach(lesson => {
+
+                        const lessonDiv =
+                            document.createElement("div");
+
+                        lessonDiv.className =
+                            "course-lesson";
+
+                        lessonDiv.innerHTML = `
+                            <span>
+                                ${lesson.lesson_order}.
+                                ${lesson.lesson_name}
+                            </span>
+
+                            <button
+                                class="complete-lesson-btn"
+                                data-lesson-id="${lesson.lesson_id}">
+                                Complete
+                            </button>
+                        `;
+
+                        lessonList.appendChild(
+                            lessonDiv
+                        );
+                    });
+
+                })
+                .catch(error => {
+
+                    console.error(
+                        "Lesson error:",
+                        error
+                    );
+
+                    lessonList.innerHTML =
+                        "<p>Unable to load lessons.</p>";
+                });
+            });
+
+        })
+        .catch(error => {
+
+            console.error(
+                "Module error:",
+                error
+            );
+
+            courseContent.innerHTML =
+                "<p>Unable to load course content.</p>";
+        });
+    }
+}
+
+
+/* ================================
+   NOTIFICATION MODULE
+================================ */
+
+const notificationAPI = "http://localhost:5000/api/notifications";
+
+async function loadNotifications() {
+    const token = localStorage.getItem("access_token");
+    const list = document.getElementById("notification-list");
+
+    if (!list) return;
+
+    if (!token) {
+        list.innerHTML =
+            "<li class='notification-item'>Please login to view notifications.</li>";
+        return;
+    }
+
+    try {
+        const response = await fetch(notificationAPI, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || "Failed to load notifications");
+        }
+
+        const notifications = result.data || [];
+
+        if (notifications.length === 0) {
+            list.innerHTML =
+                "<li class='notification-item'>No notifications available.</li>";
+            return;
+        }
+
+        list.innerHTML = "";
+
+        notifications.forEach(notification => {
+            const item = document.createElement("li");
+
+            item.className = "notification-item";
+
+            if (!notification.is_read) {
+                item.classList.add("unread");
+            }
+
+            item.innerHTML = `
+                <strong>${notification.title}</strong>
+                <p>${notification.message}</p>
+                <small>${notification.created_at || ""}</small>
+
+                <div>
+                    ${
+                        !notification.is_read
+                        ? `<button onclick="markNotificationAsRead(${notification.notification_id})">
+                             Mark as Read
+                           </button>`
+                        : "<span>Read</span>"
+                    }
+
+                    <button onclick="deleteNotification(${notification.notification_id})">
+                        Delete
+                    </button>
+                </div>
+            `;
+
+            list.appendChild(item);
+        });
+
+    } catch (error) {
+        console.error("Notification error:", error);
+
+        list.innerHTML =
+            "<li class='notification-item'>Unable to load notifications.</li>";
+    }
+}
+
+
+async function markNotificationAsRead(notificationId) {
+    const token = localStorage.getItem("access_token");
+
+    try {
+        const response = await fetch(
+            `${notificationAPI}/${notificationId}/read`,
+            {
+                method: "PATCH",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            }
+        );
+
+        if (response.ok) {
+            loadNotifications();
+        }
+
+    } catch (error) {
+        console.error("Mark notification as read error:", error);
+    }
+}
+
+
+async function markAllNotificationsAsRead() {
+    const token = localStorage.getItem("access_token");
+
+    try {
+        const response = await fetch(
+            `${notificationAPI}/read-all`,
+            {
+                method: "PATCH",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            }
+        );
+
+        if (response.ok) {
+            loadNotifications();
+        }
+
+    } catch (error) {
+        console.error("Mark all notifications error:", error);
+    }
+}
+
+
+async function deleteNotification(notificationId) {
+    const token = localStorage.getItem("access_token");
+
+    try {
+        const response = await fetch(
+            `${notificationAPI}/${notificationId}`,
+            {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            }
+        );
+
+        if (response.ok) {
+            loadNotifications();
+        }
+
+    } catch (error) {
+        console.error("Delete notification error:", error);
+    }
+}
+
+
+document.addEventListener("DOMContentLoaded", loadNotifications);
+
+
