@@ -2303,12 +2303,35 @@ if (courseContentElement) {
     async function loadLessons(moduleId) {
         const result = await apiRequest(
             "/api/modules/" +
-            module.moduleId +
+            moduleId +
             "/lessons"
         );
 
         return result.lessons || result.data || [];
     }
+
+    async function loadCourseProgress(courseId) {
+    const result = await apiRequest(
+        "/api/courses/" +
+        courseId +
+        "/progress"
+    );
+
+    return result.data;
+    }
+        const progress =
+            await loadCourseProgress(courseId);
+
+        const progressElement =
+            document.getElementById(
+            "course-progress"
+        );
+
+        if (progressElement) {
+            progressElement.textContent =
+            "Course progress: " +
+            JSON.stringify(progress);
+        }
 
     function renderMaterials(materials) {
         if (!materials.length) {
