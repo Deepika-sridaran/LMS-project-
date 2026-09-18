@@ -8,6 +8,14 @@ from routes.auth_routes import auth_bp
 from routes.user_routes import user_bp
 from routes.category_routes import category_bp
 
+# Dev 1 routes
+from routes.course_routes import course_bp
+from routes.course_workflow_routes import course_workflow_bp
+from routes.module_lesson_routes import module_lesson_bp
+from routes.material_routes import material_bp
+from routes.enrollment_routes import enrollment_bp
+
+# Dev 2 routes
 from routes.progress_routes import progress_bp
 from routes.assignment_routes import assignment_bp
 from routes.submission_routes import submission_bp
@@ -31,29 +39,79 @@ def create_app():
 
     CORS(app)
 
+    # Authentication
     app.register_blueprint(
         auth_bp,
         url_prefix="/api/auth"
     )
 
+    # Users
     app.register_blueprint(
         user_bp,
         url_prefix="/api/users"
     )
 
+    # Categories
     app.register_blueprint(
         category_bp,
         url_prefix="/api/categories"
     )
 
+    # Courses - Dev 1
+    app.register_blueprint(
+        course_bp,
+        url_prefix="/api/courses"
+    )
+
+    # Course workflow - Dev 1
+    app.register_blueprint(
+        course_workflow_bp,
+        url_prefix="/api/courses"
+    )
+
+    # Modules / Lessons - Dev 1
+    app.register_blueprint(
+        module_lesson_bp,
+        url_prefix="/api"
+    )
+
+    # Materials - Dev 1
+    app.register_blueprint(
+        material_bp,
+        url_prefix="/api"
+    )
+
+    # Enrollment - Dev 1
+    app.register_blueprint(
+        enrollment_bp,
+        url_prefix="/api"
+    )
+
+    # Progress - Dev 2
     app.register_blueprint(progress_bp)
+
+    # Assignments - Dev 2
     app.register_blueprint(assignment_bp)
+
+    # Submissions - Dev 2
     app.register_blueprint(submission_bp)
+
+    # Certification - Dev 2
     app.register_blueprint(certificate_bp)
+
+    # Reviews - Dev 2
     app.register_blueprint(review_bp)
+
+    # Notifications - Dev 2
     app.register_blueprint(notification_bp)
+
+    # Dashboards - Dev 2
     app.register_blueprint(dashboard_bp)
+
+    # Quizzes - Dev 2
     app.register_blueprint(quiz_bp)
+
+    # Quiz Attempts - Dev 2
     app.register_blueprint(quiz_attempt_bp)
 
     @app.route("/")
@@ -66,7 +124,9 @@ def create_app():
     @app.route("/database-test")
     def database_test():
         try:
-            db.session.execute(db.text("SELECT 1"))
+            db.session.execute(
+                db.text("SELECT 1")
+            )
 
             return {
                 "success": True,
