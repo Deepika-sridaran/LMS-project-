@@ -1,10 +1,12 @@
 from flask import Blueprint
+from flask_jwt_extended import jwt_required
 
 from controllers.enrollment_controller import (
     create_enrollment,
     list_enrollments,
     enrollment_details,
-    cancel_enrollment
+    cancel_enrollment,
+    get_my_enrollments
 )
 
 from utils.auth_utils import role_required
@@ -33,6 +35,13 @@ def enroll_course_route(course_id):
 def get_enrollments_route():
     return list_enrollments()
 
+@enrollment_bp.route(
+    "/enrollments/my",
+    methods=["GET"]
+)
+@jwt_required()
+def get_my_enrollments_route():
+    return get_my_enrollments()
 
 @enrollment_bp.route(
     "/enrollments/<int:enrollment_id>",
