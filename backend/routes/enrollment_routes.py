@@ -95,3 +95,23 @@ def get_my_enrollments():
         ]
     }), 200
 
+@enrollment_bp.route("/courses/<int:course_id>/students", methods=["GET"])
+@role_required("Trainer")
+def get_course_students(course_id):
+    enrollments = (
+        Enrollment.query
+        .filter_by(course_id=course_id, status="ACTIVE")
+        .all()
+    )
+    return jsonify({
+        "success": True,
+        "students": [
+            {
+                "student_id": e.student_id,
+                "student_name": User.query.get(e.student_id).full_name,
+                "status": e.status,
+                "enrolled_at": e.enrolled_at.isoformat() if e.enrolled_at else None
+            }
+            for e in enrollments
+        ]
+    }), 200

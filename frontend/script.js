@@ -1,6 +1,5 @@
 if (window.location.pathname.includes("course-details.html")) {
-    const params = new URLSearchParams(window.location.search);
-    const courseId = params.get("course");
+    const courseId = getCourseIdFromUrl();
 
     (async function loadCourseDetails() {
         try {
@@ -65,20 +64,6 @@ if (searchBox) {
             }
         });
     });
-}
-
-function getCourseIdFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const raw = params.get("course_id") || params.get("course");
-
-    if (!raw) return null;
-
-    // Real numeric ID from the database: ?course=3 or ?course_id=3
-    if (!isNaN(raw)) return Number(raw);
-
-    // Old text links kept working: ?course=python
-    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
-    return slugMap[raw] || null;
 }
 
 const courseForm = document.getElementById("create-course-form");
@@ -159,20 +144,6 @@ if (courseForm) {
     });
 }
 
-function getCourseIdFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const raw = params.get("course_id") || params.get("course");
-
-    if (!raw) return null;
-
-    // Real numeric ID from the database: ?course=3 or ?course_id=3
-    if (!isNaN(raw)) return Number(raw);
-
-    // Old text links kept working: ?course=python
-    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
-    return slugMap[raw] || null;
-}
-
 const courseList = document.getElementById("course-list");
 
 if (courseList) {
@@ -215,20 +186,6 @@ if (courseList) {
             courseList.innerHTML = "<p>Could not load courses.</p>";
         }
     })();
-}
-
-function getCourseIdFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const raw = params.get("course_id") || params.get("course");
-
-    if (!raw) return null;
-
-    // Real numeric ID from the database: ?course=3 or ?course_id=3
-    if (!isNaN(raw)) return Number(raw);
-
-    // Old text links kept working: ?course=python
-    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
-    return slugMap[raw] || null;
 }
 
 const myCoursesList = document.getElementById("my-courses-list");
@@ -365,20 +322,6 @@ if (myCoursesList) {
     loadMyCourses();
 }
 
-function getCourseIdFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const raw = params.get("course_id") || params.get("course");
-
-    if (!raw) return null;
-
-    // Real numeric ID from the database: ?course=3 or ?course_id=3
-    if (!isNaN(raw)) return Number(raw);
-
-    // Old text links kept working: ?course=python
-    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
-    return slugMap[raw] || null;
-}
-
 const approvalsList = document.getElementById("approvals-list");
 
 if (approvalsList) {
@@ -498,20 +441,6 @@ if (approvalsList) {
     }
 
     loadApprovals();
-}
-
-function getCourseIdFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const raw = params.get("course_id") || params.get("course");
-
-    if (!raw) return null;
-
-    // Real numeric ID from the database: ?course=3 or ?course_id=3
-    if (!isNaN(raw)) return Number(raw);
-
-    // Old text links kept working: ?course=python
-    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
-    return slugMap[raw] || null;
 }
 
 const evalButtons = document.querySelectorAll(".eval-submit-btn");
@@ -678,7 +607,7 @@ if (quizForm && startQuizButton) {
             if (selected) {
                 answers.push({
                     question_id: Number(question.question_id),
-                    selected_answer: selected.value
+                    selected_option: selected.value
                 });
             }
         });
@@ -809,20 +738,6 @@ if (quizForm && startQuizButton) {
     loadQuiz();
 }
 
-function getCourseIdFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const raw = params.get("course_id") || params.get("course");
-
-    if (!raw) return null;
-
-    // Real numeric ID from the database: ?course=3 or ?course_id=3
-    if (!isNaN(raw)) return Number(raw);
-
-    // Old text links kept working: ?course=python
-    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
-    return slugMap[raw] || null;
-}
-
 const assignmentForm = document.getElementById("assignment-form");
 
 if (assignmentForm) {
@@ -843,40 +758,12 @@ if (assignmentForm) {
     });
 }
 
-function getCourseIdFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const raw = params.get("course_id") || params.get("course");
-
-    if (!raw) return null;
-
-    // Real numeric ID from the database: ?course=3 or ?course_id=3
-    if (!isNaN(raw)) return Number(raw);
-
-    // Old text links kept working: ?course=python
-    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
-    return slugMap[raw] || null;
-}
-
 const downloadBtn = document.getElementById("download-cert-btn");
 
 if (downloadBtn) {
     downloadBtn.addEventListener("click", function() {
         window.print();
     });
-}
-
-function getCourseIdFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const raw = params.get("course_id") || params.get("course");
-
-    if (!raw) return null;
-
-    // Real numeric ID from the database: ?course=3 or ?course_id=3
-    if (!isNaN(raw)) return Number(raw);
-
-    // Old text links kept working: ?course=python
-    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
-    return slugMap[raw] || null;
 }
 
 const loginForm = document.getElementById("login-form");
@@ -1063,20 +950,6 @@ if (usersTableBody) {
         });
     }
     loadUsers();
-}
-
-function getCourseIdFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const raw = params.get("course_id") || params.get("course");
-
-    if (!raw) return null;
-
-    // Real numeric ID from the database: ?course=3 or ?course_id=3
-    if (!isNaN(raw)) return Number(raw);
-
-    // Old text links kept working: ?course=python
-    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
-    return slugMap[raw] || null;
 }
 
 const courseEditButtons = document.querySelectorAll(".course-edit-btn");
@@ -2339,7 +2212,7 @@ if (certificatesContainer) {
     if (!token) {
 
         certificatesContainer.innerHTML =
-            "<p>Please login first.</p>";
+            "<p>You haven't earned a certificate for this course yet — this requires 90%+ progress, all assignments graded, and a passing final assessment score.</p>";
 
     } else {
 
@@ -2610,8 +2483,130 @@ if (enrollmentsBody) {
     }
 }
 
+/* ================= ENROLL IN COURSE ================= */
 
+const enrollBtn = document.getElementById("enroll-btn");
+const enrollMessage = document.getElementById("enroll-message");
 
+if (enrollBtn) {
+    const token = localStorage.getItem("access_token");
+    const courseIdForEnroll = getCourseIdFromUrl();
+
+    enrollBtn.addEventListener("click", async function() {
+        if (!token) {
+            enrollMessage.textContent = "Please log in to enroll.";
+            enrollMessage.style.color = "#c0392b";
+            return;
+        }
+
+        if (!courseIdForEnroll) {
+            enrollMessage.textContent = "Course ID was not found.";
+            enrollMessage.style.color = "#c0392b";
+            return;
+        }
+
+        enrollBtn.disabled = true;
+        enrollMessage.textContent = "Enrolling...";
+        enrollMessage.style.color = "#5B6472";
+
+        try {
+            const response = await fetch(
+                "http://127.0.0.1:5000/api/courses/" + courseIdForEnroll + "/enroll",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    },
+                    body: JSON.stringify({})
+                }
+            );
+
+            const data = await response.json();
+
+            if (response.ok) {
+                enrollMessage.textContent = "Enrolled successfully!";
+                enrollMessage.style.color = "#27ae60";
+                enrollBtn.textContent = "Enrolled";
+            } else {
+                enrollMessage.textContent = data.message || "Could not enroll.";
+                enrollMessage.style.color = "#c0392b";
+                enrollBtn.disabled = false;
+            }
+        } catch (error) {
+            enrollMessage.textContent = "Could not reach the server.";
+            enrollMessage.style.color = "#c0392b";
+            enrollBtn.disabled = false;
+        }
+    });
+}
+
+/* ================= MY PROGRESS ================= */
+
+const progressContainer = document.getElementById("progress-container");
+
+if (progressContainer) {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+        progressContainer.innerHTML = "<p>Please login first.</p>";
+    } else {
+        (async function loadMyProgress() {
+            try {
+                const enrollmentsResponse = await fetch(
+                    "http://127.0.0.1:5000/api/enrollments/my",
+                    { headers: { "Authorization": "Bearer " + token } }
+                );
+
+                const enrollmentsData = await enrollmentsResponse.json();
+
+                if (!enrollmentsResponse.ok || !enrollmentsData.courses || enrollmentsData.courses.length === 0) {
+                    progressContainer.innerHTML = "<p>You are not enrolled in any courses yet.</p>";
+                    return;
+                }
+
+                const activeCourses = enrollmentsData.courses.filter(function(course) {
+                    return course.status === "ACTIVE" || course.status === "COMPLETED";
+                });
+
+                if (activeCourses.length === 0) {
+                    progressContainer.innerHTML = "<p>No active enrollments to show progress for.</p>";
+                    return;
+                }
+
+                const rows = await Promise.all(
+                    activeCourses.map(async function(course) {
+                        let percent = 0;
+
+                        try {
+                            const progressResponse = await fetch(
+                                "http://127.0.0.1:5000/api/courses/" + course.course_id + "/progress",
+                                { headers: { "Authorization": "Bearer " + token } }
+                            );
+                            const progressData = await progressResponse.json();
+                            percent = Number(progressData.progress_percentage || progressData.progress || 0);
+                        } catch (error) {
+                            console.log("Could not load progress for course " + course.course_id, error);
+                        }
+
+                        return (
+                            "<div class='progress-item'>" +
+                                "<h3>" + course.course_title + "</h3>" +
+                                "<p>Status: " + course.status + "</p>" +
+                                "<p>Progress: " + percent + "%</p>" +
+                            "</div>"
+                        );
+                    })
+                );
+
+                progressContainer.innerHTML = rows.join("");
+            } catch (error) {
+                console.error("Progress page error:", error);
+                progressContainer.innerHTML = "<p>Unable to load your progress.</p>";
+            }
+        })();
+    }
+}
 
 /* ================= COURSE CERTIFICATE CHECK ================= */
 
@@ -2633,7 +2628,6 @@ if (viewCertificateBtn && certificateMessage) {
     const token = localStorage.getItem("access_token");
 
     viewCertificateBtn.addEventListener("click", function () {
-
         if (!token) {
             certificateMessage.textContent = "Please login first.";
             return;
@@ -2644,51 +2638,7 @@ if (viewCertificateBtn && certificateMessage) {
             return;
         }
 
-        fetch(
-            "http://127.0.0.1:5000/api/courses/" +
-            actualCourseId +
-            "/progress",
-            {
-                headers: {
-                    "Authorization": "Bearer " + token
-                }
-            }
-        )
-        .then(response => {
-
-            if (!response.ok) {
-                throw new Error("Progress API failed");
-            }
-
-            return response.json();
-        })
-        .then(data => {
-
-            const progress = Number(
-                data.progress_percentage ||
-                data.progress ||
-                0
-            );
-
-            if (progress >= 100) {
-
-                window.location.href =
-                    "certificate.html?course_id=" +
-                    actualCourseId;
-
-            } else {
-
-                certificateMessage.textContent =
-                    "Please complete the course to get the certificate.";
-            }
-        })
-        .catch(error => {
-
-            console.error("Certificate eligibility error:", error);
-
-            certificateMessage.textContent =
-                "Unable to check course completion.";
-        });
+        window.location.href = "certificate.html?course_id=" + actualCourseId;
     });
 }
 
