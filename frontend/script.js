@@ -443,14 +443,124 @@ if (approvalsList) {
     loadApprovals();
 }
 
-const evalButtons = document.querySelectorAll(".eval-submit-btn");
+const assignmentSelect = document.getElementById("assignment-select");
 
-evalButtons.forEach(function(button) {
-    button.addEventListener("click", function() {
-        const studentName = button.dataset.student;
-        alert("Evaluation submitted for " + studentName + "!");
+if (assignmentSelect) {
+    const token = localStorage.getItem("access_token");
+    const courseId = 1; // Temporary: same hardcoded course used elsewhere
+    const submissionsList = document.getElementById("submissions-list");
+
+    (async function loadAssignmentOptions() {
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/courses/" + courseId + "/assignments", {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            const data = await response.json();
+
+            assignmentSelect.innerHTML = "<option value=''>-- Select --</option>";
+            data.data.forEach(function(a) {
+                const option = document.createElement("option");
+                option.value = a.assignment_id;
+                option.textContent = a.title;
+                assignmentSelect.appendChild(option);
+            });
+        } catch (error) {
+            assignmentSelect.innerHTML = "<option value=''>Could not load assignments</option>";
+        }
+    })();
+
+    async function loadSubmissions(assignmentId) {
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/assignments/" + assignmentId + "/submissions", {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            const data = await response.json();
+
+            submissionsList.innerHTML = "";
+
+            if (data.data.length === 0) {
+                submissionsList.innerHTML = "<p>No submissions yet for this assignment.</p>";
+                return;
+            }
+
+            data.data.forEach(function(sub) {
+                const item = document.createElement("div");
+                item.className = "evaluation-item";
+                item.dataset.submissionId = sub.submission_id;
+
+                const alreadyEvaluated = sub.status === "EVALUATED";
+
+                item.innerHTML =
+                    "<h3>Student ID: " + sub.student_id + " (Status: " + sub.status + ")</h3>" +
+                    "<p>Comments: " + (sub.comments || "None") + "</p>" +
+                    "<div class='form-group'>" +
+                        "<label>Marks</label>" +
+                        "<input type='number' class='eval-marks' min='0' value='" + (sub.marks !== null ? sub.marks : "") + "'>" +
+                    "</div>" +
+                    "<div class='form-group'>" +
+                        "<label>Feedback</label>" +
+                        "<textarea class='eval-feedback' rows='2'>" + (sub.feedback || "") + "</textarea>" +
+                    "</div>" +
+                    "<button class='eval-submit-btn'>" + (alreadyEvaluated ? "Update Evaluation" : "Submit Evaluation") + "</button>";
+
+                submissionsList.appendChild(item);
+            });
+
+            attachEvalEvents();
+        } catch (error) {
+            submissionsList.innerHTML = "<p>Could not load submissions.</p>";
+        }
+    }
+
+    function attachEvalEvents() {
+        document.querySelectorAll(".eval-submit-btn").forEach(function(button) {
+            button.addEventListener("click", async function() {
+                const item = button.closest(".evaluation-item");
+                const submissionId = item.dataset.submissionId;
+                const marks = item.querySelector(".eval-marks").value;
+                const feedback = item.querySelector(".eval-feedback").value.trim();
+
+                if (marks === "") {
+                    alert("Please enter marks.");
+                    return;
+                }
+
+                try {
+                    const response = await fetch("http://127.0.0.1:5000/api/submissions/" + submissionId + "/evaluate", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + token
+                        },
+                        body: JSON.stringify({
+                            marks: parseFloat(marks),
+                            feedback: feedback
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        alert("Evaluation saved!");
+                        loadSubmissions(assignmentSelect.value);
+                    } else {
+                        alert(data.message || "Could not evaluate.");
+                    }
+                } catch (error) {
+                    alert("Could not reach the server.");
+                }
+            });
+        });
+    }
+
+    assignmentSelect.addEventListener("change", function() {
+        if (assignmentSelect.value) {
+            loadSubmissions(assignmentSelect.value);
+        } else {
+            submissionsList.innerHTML = "";
+        }
     });
-});
+}
 
 const API_BASE_URL = "http://127.0.0.1:5000";
 
@@ -741,19 +851,82 @@ if (quizForm && startQuizButton) {
 const assignmentForm = document.getElementById("assignment-form");
 
 if (assignmentForm) {
-    assignmentForm.addEventListener("submit", function(event) {
+    const token = localStorage.getItem("access_token");
+    const params = new URLSearchParams(window.location.search);
+    const assignmentId = params.get("assignment");
+    const message = document.getElementById("submission-message");
+
+    (async function loadAssignment() {
+       if (!assignmentId) {
+            message.textContent = "No assignment specified — open this page with a valid assignment link.";
+            message.style.color = "#c0392b";
+            return;
+        }
+
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/assignments/" + assignmentId, {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                const a = data.data;
+                document.getElementById("assignment-title").textContent = "Assignment: " + a.title;
+                document.getElementById("assignment-description").textContent = a.description || "";
+                document.getElementById("assignment-deadline").textContent = a.deadline;
+                document.getElementById("assignment-max-marks").textContent = a.maximum_marks;
+                document.getElementById("assignment-file-types").textContent = a.allowed_file_types || "Any";
+            } else {
+                document.getElementById("assignment-title").textContent = data.message || "Assignment not found.";
+            }
+        } catch (error) {
+            document.getElementById("assignment-title").textContent = "Could not load assignment.";
+        }
+    })();
+
+    assignmentForm.addEventListener("submit", async function(event) {
         event.preventDefault();
 
         const fileInput = document.getElementById("submission-file");
-        const message = document.getElementById("submission-message");
+        const comments = document.getElementById("submission-comments").value.trim();
 
         if (fileInput.files.length === 0) {
             message.textContent = "Please choose a file before submitting.";
             message.style.color = "#c0392b";
-        } else {
-            const fileName = fileInput.files[0].name;
-            message.textContent = "Submitted: " + fileName + "- awaiting evaluation.";
-            message.style.color = "#27ae60";
+            return;
+        }
+
+        // Note: the backend only stores a file PATH string, not the actual file
+        // contents — there's no real file-upload storage endpoint yet, so we
+        // send the chosen file's name as a placeholder.
+        const fileName = fileInput.files[0].name;
+
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/assignments/" + assignmentId + "/submit", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({
+                    file_path: fileName,
+                    comments: comments
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                message.textContent = "Submitted: " + fileName + " — awaiting evaluation.";
+                message.style.color = "#27ae60";
+                assignmentForm.reset();
+            } else {
+                message.textContent = data.message || "Could not submit assignment.";
+                message.style.color = "#c0392b";
+            }
+        } catch (error) {
+            message.textContent = "Could not reach the server.";
+            message.style.color = "#c0392b";
         }
     });
 }
