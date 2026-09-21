@@ -34,6 +34,20 @@ if (window.location.pathname.includes("course-details.html")) {
     })();
 }
 
+function getCourseIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("course_id") || params.get("course");
+
+    if (!raw) return null;
+
+    // Real numeric ID from the database: ?course=3 or ?course_id=3
+    if (!isNaN(raw)) return Number(raw);
+
+    // Old text links kept working: ?course=python
+    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
+    return slugMap[raw] || null;
+}
+
 const searchBox = document.getElementById("search-box");
 
 if (searchBox) {
@@ -51,6 +65,20 @@ if (searchBox) {
             }
         });
     });
+}
+
+function getCourseIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("course_id") || params.get("course");
+
+    if (!raw) return null;
+
+    // Real numeric ID from the database: ?course=3 or ?course_id=3
+    if (!isNaN(raw)) return Number(raw);
+
+    // Old text links kept working: ?course=python
+    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
+    return slugMap[raw] || null;
 }
 
 const courseForm = document.getElementById("create-course-form");
@@ -131,6 +159,20 @@ if (courseForm) {
     });
 }
 
+function getCourseIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("course_id") || params.get("course");
+
+    if (!raw) return null;
+
+    // Real numeric ID from the database: ?course=3 or ?course_id=3
+    if (!isNaN(raw)) return Number(raw);
+
+    // Old text links kept working: ?course=python
+    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
+    return slugMap[raw] || null;
+}
+
 const courseList = document.getElementById("course-list");
 
 if (courseList) {
@@ -173,6 +215,20 @@ if (courseList) {
             courseList.innerHTML = "<p>Could not load courses.</p>";
         }
     })();
+}
+
+function getCourseIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("course_id") || params.get("course");
+
+    if (!raw) return null;
+
+    // Real numeric ID from the database: ?course=3 or ?course_id=3
+    if (!isNaN(raw)) return Number(raw);
+
+    // Old text links kept working: ?course=python
+    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
+    return slugMap[raw] || null;
 }
 
 const myCoursesList = document.getElementById("my-courses-list");
@@ -309,6 +365,20 @@ if (myCoursesList) {
     loadMyCourses();
 }
 
+function getCourseIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("course_id") || params.get("course");
+
+    if (!raw) return null;
+
+    // Real numeric ID from the database: ?course=3 or ?course_id=3
+    if (!isNaN(raw)) return Number(raw);
+
+    // Old text links kept working: ?course=python
+    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
+    return slugMap[raw] || null;
+}
+
 const approvalsList = document.getElementById("approvals-list");
 
 if (approvalsList) {
@@ -428,6 +498,20 @@ if (approvalsList) {
     }
 
     loadApprovals();
+}
+
+function getCourseIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("course_id") || params.get("course");
+
+    if (!raw) return null;
+
+    // Real numeric ID from the database: ?course=3 or ?course_id=3
+    if (!isNaN(raw)) return Number(raw);
+
+    // Old text links kept working: ?course=python
+    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
+    return slugMap[raw] || null;
 }
 
 const evalButtons = document.querySelectorAll(".eval-submit-btn");
@@ -725,6 +809,20 @@ if (quizForm && startQuizButton) {
     loadQuiz();
 }
 
+function getCourseIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("course_id") || params.get("course");
+
+    if (!raw) return null;
+
+    // Real numeric ID from the database: ?course=3 or ?course_id=3
+    if (!isNaN(raw)) return Number(raw);
+
+    // Old text links kept working: ?course=python
+    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
+    return slugMap[raw] || null;
+}
+
 const assignmentForm = document.getElementById("assignment-form");
 
 if (assignmentForm) {
@@ -745,12 +843,40 @@ if (assignmentForm) {
     });
 }
 
+function getCourseIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("course_id") || params.get("course");
+
+    if (!raw) return null;
+
+    // Real numeric ID from the database: ?course=3 or ?course_id=3
+    if (!isNaN(raw)) return Number(raw);
+
+    // Old text links kept working: ?course=python
+    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
+    return slugMap[raw] || null;
+}
+
 const downloadBtn = document.getElementById("download-cert-btn");
 
 if (downloadBtn) {
     downloadBtn.addEventListener("click", function() {
         window.print();
     });
+}
+
+function getCourseIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("course_id") || params.get("course");
+
+    if (!raw) return null;
+
+    // Real numeric ID from the database: ?course=3 or ?course_id=3
+    if (!isNaN(raw)) return Number(raw);
+
+    // Old text links kept working: ?course=python
+    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
+    return slugMap[raw] || null;
 }
 
 const loginForm = document.getElementById("login-form");
@@ -937,6 +1063,20 @@ if (usersTableBody) {
         });
     }
     loadUsers();
+}
+
+function getCourseIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("course_id") || params.get("course");
+
+    if (!raw) return null;
+
+    // Real numeric ID from the database: ?course=3 or ?course_id=3
+    if (!isNaN(raw)) return Number(raw);
+
+    // Old text links kept working: ?course=python
+    const slugMap = { python: 1, webdesign: 8, datastructures: 6 };
+    return slugMap[raw] || null;
 }
 
 const courseEditButtons = document.querySelectorAll(".course-edit-btn");
@@ -2011,7 +2151,7 @@ if (window.location.pathname.includes("course-details.html")) {
         datastructures: 3
     };
 
-    const backendCourseId = courseIds[courseKey];
+    const backendCourseId = getCourseIdFromUrl();
     const takeQuizLink = document.getElementById("take-quiz-link");
     const quizLinkMessage =
         document.getElementById("quiz-link-message");
@@ -2489,7 +2629,7 @@ if (viewCertificateBtn && certificateMessage) {
         datastructures: 6
     };
 
-    const actualCourseId = courseDataForCertificate[courseKey];
+    const actualCourseId = getCourseIdFromUrl();
     const token = localStorage.getItem("access_token");
 
     viewCertificateBtn.addEventListener("click", function () {
@@ -2555,25 +2695,30 @@ if (viewCertificateBtn && certificateMessage) {
 
 /* ================= COURSE CONTENT ================= */
 
-const courseContentElement =
-    document.getElementById("course-content");
+const courseContentElement =document.getElementById("course-content");
 
 if (courseContentElement) {
     const API_BASE_URL = "http://127.0.0.1:5000";
     const token = localStorage.getItem("access_token");
     const params = new URLSearchParams(window.location.search);
 
-    // Prefer ?course_id=1.
-    // The text mappings are kept for older links such as ?course=python.
-    const courseIdMap = {
-        python: 1,
-        webdesign: 8,
-        datastructures: 6
-    };
+    const courseId = getCourseIdFromUrl();
 
-    const courseId =
-        params.get("course_id") ||
-        courseIdMap[params.get("course")];
+    const progressElement = document.getElementById("course-progress");
+
+        if (progressElement && courseId && token) {
+            fetch(API_BASE_URL + "/api/courses/" + courseId + "/progress", {
+            headers: { "Authorization": "Bearer " + token }
+            })
+            .then(r => r.json())
+            .then(data => {
+            const percent = Number(data.progress_percentage || data.progress || 0);
+            progressElement.textContent = "Progress: " + percent + "%";
+            })
+            .catch(() => {
+            progressElement.textContent = "Could not load progress.";
+            });
+        }
 
     function escapeHtml(value) {
         return String(value || "")
