@@ -1177,32 +1177,94 @@ if (verifyBtn) {
         });
 }
 
+const reviewsList = document.getElementById("reviews-list");
+
+if (reviewsList) {
+    const token = localStorage.getItem("access_token");
+    const courseId = new URLSearchParams(window.location.search).get("course");
+    const ratingSummary = document.getElementById("rating-summary");
     const reviewForm = document.getElementById("review-form");
+    const reviewMessage = document.getElementById("review-message");
 
-    if (reviewForm) {
-        reviewForm.addEventListener("submit", function(event) {
-            event.preventDefault();
+    async function loadReviews() {
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/courses/" + courseId + "/reviews");
+            const data = await response.json();
 
-            const rating = document.getElementById("review-rating").value;
-            const text = document.getElementById("review-text").value.trim();
-
-            if (rating === "" || text === "") {
-                alert("Please Select a Rating and Write a Review.");
+            if (!response.ok) {
+                reviewsList.innerHTML = "<p>Could not load reviews.</p>";
                 return;
             }
-            const stars = "\u2605".repeat(rating) + "\u2606".repeat(5 - rating);
 
-            const newReview = document.createElement("div");
-            newReview.className = "review-item";
-            newReview.innerHTML = "<p><strong>You</strong> - " + stars +
-             "</p><p>" + text + "</p>";
+            const { average_rating, review_count, reviews } = data.data;
 
-             reviewForm.parentElement.insertBefore(newReview, 
-                reviewForm.parentElement.querySelector("h3"));
+            ratingSummary.textContent = review_count > 0
+                ? "Average rating: " + average_rating + " / 5 (" + review_count + " review" + (review_count === 1 ? "" : "s") + ")"
+                : "No ratings yet.";
 
-                reviewForm.reset();
-        });
+            reviewsList.innerHTML = "";
+
+            if (reviews.length === 0) {
+                reviewsList.innerHTML = "<p>Be the first to review this course.</p>";
+                return;
+            }
+
+            reviews.forEach(function(review) {
+                const stars = "\u2605".repeat(review.rating) + "\u2606".repeat(5 - review.rating);
+                const item = document.createElement("div");
+                item.className = "review-item";
+                item.innerHTML = "<p><strong>Student " + review.student_id + "</strong> — " + stars + "</p><p>" + (review.review_text || "") + "</p>";
+                reviewsList.appendChild(item);
+            });
+        } catch (error) {
+            reviewsList.innerHTML = "<p>Could not reach the server.</p>";
+        }
     }
+
+    reviewForm.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const rating = document.getElementById("review-rating").value;
+        const text = document.getElementById("review-text").value.trim();
+
+        if (rating === "" || text === "") {
+            reviewMessage.textContent = "Please select a rating and write a review.";
+            reviewMessage.style.color = "#c0392b";
+            return;
+        }
+
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/courses/" + courseId + "/reviews", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({
+                    rating: parseInt(rating),
+                    review_text: text
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                reviewMessage.textContent = "Review submitted!";
+                reviewMessage.style.color = "#27ae60";
+                reviewForm.reset();
+                loadReviews();
+            } else {
+                reviewMessage.textContent = data.message || "Could not submit review.";
+                reviewMessage.style.color = "#c0392b";
+            }
+        } catch (error) {
+            reviewMessage.textContent = "Could not reach the server.";
+            reviewMessage.style.color = "#c0392b";
+        }
+    });
+
+    loadReviews();
+}
 
     const categoryList = document.getElementById("category-list");
 
@@ -2721,64 +2783,46 @@ const progressContainer = document.getElementById("progress-container");
 if (progressContainer) {
     const token = localStorage.getItem("access_token");
 
-    if (!token) {
-        progressContainer.innerHTML = "<p>Please login first.</p>";
-    } else {
-        (async function loadMyProgress() {
-            try {
-                const enrollmentsResponse = await fetch(
-                    "http://127.0.0.1:5000/api/enrollments/my",
-                    { headers: { "Authorization": "Bearer " + token } }
-                );
+    (async function loadProgress() {
+        try {
+            const enrollRes = await fetch("http://127.0.0.1:5000/api/enrollments/my", {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            const enrollData = await enrollRes.json();
 
-                const enrollmentsData = await enrollmentsResponse.json();
-
-                if (!enrollmentsResponse.ok || !enrollmentsData.courses || enrollmentsData.courses.length === 0) {
-                    progressContainer.innerHTML = "<p>You are not enrolled in any courses yet.</p>";
-                    return;
-                }
-
-                const activeCourses = enrollmentsData.courses.filter(function(course) {
-                    return course.status === "ACTIVE" || course.status === "COMPLETED";
-                });
-
-                if (activeCourses.length === 0) {
-                    progressContainer.innerHTML = "<p>No active enrollments to show progress for.</p>";
-                    return;
-                }
-
-                const rows = await Promise.all(
-                    activeCourses.map(async function(course) {
-                        let percent = 0;
-
-                        try {
-                            const progressResponse = await fetch(
-                                "http://127.0.0.1:5000/api/courses/" + course.course_id + "/progress",
-                                { headers: { "Authorization": "Bearer " + token } }
-                            );
-                            const progressData = await progressResponse.json();
-                            percent = Number(progressData.progress_percentage || progressData.progress || 0);
-                        } catch (error) {
-                            console.log("Could not load progress for course " + course.course_id, error);
-                        }
-
-                        return (
-                            "<div class='progress-item'>" +
-                                "<h3>" + course.course_title + "</h3>" +
-                                "<p>Status: " + course.status + "</p>" +
-                                "<p>Progress: " + percent + "%</p>" +
-                            "</div>"
-                        );
-                    })
-                );
-
-                progressContainer.innerHTML = rows.join("");
-            } catch (error) {
-                console.error("Progress page error:", error);
-                progressContainer.innerHTML = "<p>Unable to load your progress.</p>";
+            if (!enrollData.courses || enrollData.courses.length === 0) {
+                progressContainer.innerHTML = "<p>You are not enrolled in any courses yet.</p>";
+                return;
             }
-        })();
-    }
+
+            const progressResults = await Promise.all(
+                enrollData.courses.map(function(enrollment) {
+                    return fetch("http://127.0.0.1:5000/api/courses/" + enrollment.course_id + "/progress", {
+                        headers: { "Authorization": "Bearer " + token }
+                    }).then(function(res) { return res.json(); });
+                })
+            );
+
+            progressContainer.innerHTML = "";
+
+            enrollData.courses.forEach(function(enrollment, index) {
+                const progress = progressResults[index].data;
+
+                const item = document.createElement("div");
+                item.className = "progress-item";
+                item.innerHTML =
+                    "<h3>" + enrollment.course_title + "</h3>" +
+                    "<div class='progress-bar-bg'>" +
+                        "<div class='progress-bar-fill' style='width: " + progress.progress_percentage + "%;'></div>" +
+                    "</div>" +
+                    "<p>" + progress.progress_percentage + "% complete (" + progress.completed_lessons + " of " + progress.total_lessons + " lessons)</p>";
+
+                progressContainer.appendChild(item);
+            });
+        } catch (error) {
+            progressContainer.innerHTML = "<p>Could not load progress.</p>";
+        }
+    })();
 }
 
 /* ================= COURSE CERTIFICATE CHECK ================= */
