@@ -1,7 +1,7 @@
 from extensions import db
 from models.course import Course
 from models.course_status_history import CourseStatusHistory
-
+from services.notification_service import create_notification
 
 def add_status_history(
     course_id,
@@ -150,6 +150,12 @@ def approve_course(course_id, admin_id, remarks=None):
         "new_status": "APPROVED"
     }, 200
 
+    create_notification(
+        user_id=course.trainer_id,
+        title="Course Approved",
+        message=f"Your Course '{course.title}' has been approved and published.",
+        notification_type="COURSE_APPROVED"
+    )
 
 def reject_course(course_id, admin_id, remarks=None):
     course = db.session.get(Course, course_id)
@@ -189,6 +195,12 @@ def reject_course(course_id, admin_id, remarks=None):
         "new_status": "REJECTED"
     }, 200
 
+    create_notification(
+    user_id=course.trainer_id,
+    title="Course Rejected",
+    message=f"Your course '{course.title}' was rejected. Remarks: {remarks}",
+    notification_type="COURSE_REJECTED"
+    )
 
 def move_to_revision(course_id, trainer_id, remarks=None):
     course = db.session.get(Course, course_id)

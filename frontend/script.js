@@ -1,42 +1,37 @@
 if (window.location.pathname.includes("course-details.html")) {
-
     const params = new URLSearchParams(window.location.search);
-    const courseIdMap = {
-                python: 1,
-                webdesign: 8,
-                datastructures: 6
-        };
-    const courseId =
-            params.get("course_id") ||
-            courseIdMap[params.get("course")];
+    const courseId = params.get("course");
 
-    const courseData = {
-        python: { courseId: 1, title: "Python Programming for Beginners",
-            category: "Programming",
-            rating: "4.5 / 5",
-            description: "Learn the basics of Python Programming from Scratch."
-        },
-        webdesign: { courseId: 8, title: "HTML CSS and JavaScript",
-            category: "Design",
-            rating: "4.2 / 5",
-            description: "Understand HTML, CSS and Design Fundamentals for the web."
-        },
-        datastructures: { courseId: 6, title: "SQL Mastery",
-            category: "Programming",
-            rating: "4.8 / 5",
-            description: "Master arrays, linked lists, trees and more."
+    (async function loadCourseDetails() {
+        try {
+            const [courseRes, categoriesRes] = await Promise.all([
+                fetch("http://127.0.0.1:5000/api/courses/" + courseId),
+                fetch("http://127.0.0.1:5000/api/categories")
+            ]);
+
+            const courseData = await courseRes.json();
+            const categoriesData = await categoriesRes.json();
+
+            if (!courseRes.ok) {
+                document.getElementById("course-title").textContent = "Course not found";
+                return;
+            }
+
+            const categoryMap = {};
+            categoriesData.categories.forEach(function(cat) {
+                categoryMap[cat.category_id] = cat.category_name;
+            });
+
+            const course = courseData.course;
+
+            document.getElementById("course-title").textContent = course.title;
+            document.getElementById("course-category").textContent = "Category: " + (categoryMap[course.category_id] || "Uncategorized");
+            document.getElementById("course-rating").textContent = "Level: " + (course.level || "Not specified");
+            document.getElementById("course-description").textContent = course.description || "No description available.";
+        } catch (error) {
+            console.log("Could not load course details:", error);
         }
-    };
-    const course = courseData[courseId];
-
-    if (course) {
-        document.getElementById("course-title").textContent = course.title;
-        document.getElementById("course-category").textContent = "Category : " + 
-        course.category;
-        document.getElementById("course-rating").textContent = "Rating : " +
-        course.rating;
-        document.getElementById("course-description").textContent = course.description;
-    }
+    })();
 }
 
 const searchBox = document.getElementById("search-box");
@@ -58,50 +53,381 @@ if (searchBox) {
     });
 }
 
-const approveButtons = document.querySelectorAll(".approve-btn");
-const rejectButtons = document.querySelectorAll(".reject-btn");
-
-approveButtons.forEach(function(button) {
-    button.addEventListener("click", function() {
-        const item = button.closest(".approval-item");
-        alert(item.querySelector("h3").textContent.trim() + " Approved!");
-        item.remove();
-    });
-});
-
-rejectButtons.forEach(function(button) {
-    button.addEventListener("click", function() {
-        const item = button.closest(".approval-item");
-        alert(item.querySelector("h3").textContent.trim() + " Rejected!");
-    });
-});
-
 const courseForm = document.getElementById("create-course-form");
 
 if (courseForm) {
+    const token = localStorage.getItem("access_token");
+    const categorySelect = document.getElementById("course-category");
     const formMessage = document.getElementById("form-message");
 
-    courseForm.addEventListener("submit", function(event) {
+    // Load real categories into the dropdown
+    (async function loadCategories() {
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/categories");
+            const data = await response.json();
+
+            if (response.ok) {
+                data.categories.forEach(function(category) {
+                    const option = document.createElement("option");
+                    option.value = category.category_id;
+                    option.textContent = category.category_name;
+                    categorySelect.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.log("Could not load categories:", error);
+        }
+    })();
+
+    courseForm.addEventListener("submit", async function(event) {
         event.preventDefault();
-        formMessage.textContent = "Course saved as Draft!";
-        formMessage.style.color = "#27ae60";
-    });
 
-    const submitApprovalBtn = document.querySelector(".submit-approval-btn");
-
-    submitApprovalBtn.addEventListener("click", function() {
         const title = document.getElementById("course-title").value.trim();
-        const category = document.getElementById("course-category").value;
+        const categoryId = categorySelect.value;
+        const thumbnail = document.getElementById("course-thumbnail").value.trim();
         const description = document.getElementById("course-description").value.trim();
+        const objectives = document.getElementById("learning-objectives").value.trim();
+        const level = document.getElementById("course-level").value;
+        const duration = document.getElementById("course-duration").value;
 
-        if (title === "" || category === "" || description === "") {
-            formMessage.textContent = "Please fill in Title, Category and Description before submitting for approval.";
+        if (title === "" || categoryId === "" || description === "") {
+            formMessage.textContent = "Please fill in Title, Category and Description.";
             formMessage.style.color = "#c0392b";
-        } else {
-            formMessage.textContent = "Course Submitted for Admin Approval!";
-            formMessage.style.color = "#27ae60";
+            return;
+        }
+
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/courses", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({
+                    category_id: parseInt(categoryId),
+                    title: title,
+                    description: description,
+                    learning_objectives: objectives || null,
+                    thumbnail: thumbnail || null,
+                    level: level || null,
+                    duration: duration ? parseInt(duration) : null
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                formMessage.textContent = "Course \"" + data.course.title + "\" created as Draft (course ID: " + data.course.course_id + ")!";
+                formMessage.style.color = "#27ae60";
+                courseForm.reset();
+            } else {
+                formMessage.textContent = data.message || "Could not create course.";
+                formMessage.style.color = "#c0392b";
+            }
+        } catch (error) {
+            formMessage.textContent = "Could not reach the server.";
+            formMessage.style.color = "#c0392b";
         }
     });
+}
+
+const courseList = document.getElementById("course-list");
+
+if (courseList) {
+    (async function loadCourses() {
+        try {
+            const [coursesRes, categoriesRes] = await Promise.all([
+                fetch("http://127.0.0.1:5000/api/courses"),
+                fetch("http://127.0.0.1:5000/api/categories")
+            ]);
+
+            const coursesData = await coursesRes.json();
+            const categoriesData = await categoriesRes.json();
+
+            const categoryMap = {};
+            categoriesData.categories.forEach(function(cat) {
+                categoryMap[cat.category_id] = cat.category_name;
+            });
+
+            const publishedCourses = coursesData.courses.filter(function(course) {
+                return course.status === "PUBLISHED";
+            });
+
+            courseList.innerHTML = "";
+
+            publishedCourses.forEach(function(course) {
+                const card = document.createElement("div");
+                card.className = "course-card";
+                card.innerHTML =
+                    "<h3>" + course.title + "</h3>" +
+                    "<p>Category: " + (categoryMap[course.category_id] || "Uncategorized") + "</p>" +
+                    "<p>Level: " + (course.level || "Not specified") + "</p>" +
+                    "<a href='course-details.html?course=" + course.course_id + "'><button>View Details</button></a>";
+                courseList.appendChild(card);
+            });
+
+            if (publishedCourses.length === 0) {
+                courseList.innerHTML = "<p>No published courses available yet.</p>";
+            }
+        } catch (error) {
+            courseList.innerHTML = "<p>Could not load courses.</p>";
+        }
+    })();
+}
+
+const myCoursesList = document.getElementById("my-courses-list");
+
+if (myCoursesList) {
+    const token = localStorage.getItem("access_token");
+
+    function statusClass(status) {
+        if (status === "PUBLISHED") return "status-published";
+        if (status === "DRAFT" || status === "ARCHIVED") return "status-draft";
+        return "status-pending"; // SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, REVISION, RESUBMITTED
+    }
+
+    async function loadMyCourses() {
+    try {
+        const response = await fetch("http://127.0.0.1:5000/api/courses/my", {
+            headers: { "Authorization": "Bearer " + token }
+        });
+        const data = await response.json();
+
+        myCoursesList.innerHTML = "";
+
+        data.courses.forEach(function(course) {
+            const item = document.createElement("div");
+            item.className = "trainer-course-item";
+            item.dataset.courseId = course.course_id;
+
+            let workflowHTML = "";
+            if (course.status === "DRAFT") {
+                workflowHTML = "<button class='submit-course-btn'>Submit for Approval</button>";
+            } else if (course.status === "REJECTED") {
+                workflowHTML = "<button class='revise-course-btn'>Move to Revision</button>";
+            } else if (course.status === "REVISION") {
+                workflowHTML = "<button class='submit-course-btn'>Resubmit</button>";
+            }
+
+            item.innerHTML =
+                "<div>" +
+                    "<h3>" + course.title + "</h3>" +
+                    "<p>Status: <span class='status-badge " + statusClass(course.status) + "'>" + course.status + "</span></p>" +
+                "</div>" +
+                "<div class='trainer-course-actions'>" +
+                    "<button class='course-edit-btn'>Edit</button>" +
+                    "<button class='course-delete-btn'>Delete</button> " +
+                    workflowHTML +
+                "</div>";
+
+            myCoursesList.appendChild(item);
+            });
+
+            attachCourseButtonEvents();
+        } catch (error) {
+            myCoursesList.innerHTML = "<p>Could not load your courses.</p>";
+        }
+    }
+
+    function attachCourseButtonEvents() {
+        document.querySelectorAll(".course-edit-btn").forEach(function(button) {
+            button.addEventListener("click", async function() {
+                const item = button.closest(".trainer-course-item");
+                const courseId = item.dataset.courseId;
+                const currentTitle = item.querySelector("h3").textContent;
+
+                const newTitle = prompt("Course Title:", currentTitle);
+                if (newTitle === null) return;
+
+                const response = await fetch("http://127.0.0.1:5000/api/courses/" + courseId, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    },
+                    body: JSON.stringify({ title: newTitle })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    loadMyCourses();
+                } else {
+                    alert(data.message || "Could not update course.");
+                }
+            });
+        });
+
+        document.querySelectorAll(".course-delete-btn").forEach(function(button) {
+            button.addEventListener("click", async function() {
+                const item = button.closest(".trainer-course-item");
+                const courseId = item.dataset.courseId;
+                const courseName = item.querySelector("h3").textContent;
+
+                if (!confirm("Delete \"" + courseName + "\"?")) return;
+
+                const response = await fetch("http://127.0.0.1:5000/api/courses/" + courseId, {
+                    method: "DELETE",
+                    headers: { "Authorization": "Bearer " + token }
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    loadMyCourses();
+                } else {
+                    alert(data.message || "Could not delete course.");
+                }
+            });
+        });
+
+        document.querySelectorAll(".submit-course-btn").forEach(function(button) {
+            button.addEventListener("click", async function() {
+                const courseId = button.closest(".trainer-course-item").dataset.courseId;
+                const response = await fetch("http://127.0.0.1:5000/api/courses/" + courseId + "/submit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+                    body: JSON.stringify({})
+                });
+                const data = await response.json();
+                    if (response.ok) { loadMyCourses(); } else { alert(data.message || "Could not submit."); }
+                });
+            });
+
+        document.querySelectorAll(".revise-course-btn").forEach(function(button) {
+            button.addEventListener("click", async function() {
+                const courseId = button.closest(".trainer-course-item").dataset.courseId;
+                const response = await fetch("http://127.0.0.1:5000/api/courses/" + courseId + "/revision", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+                    body: JSON.stringify({})
+                });
+                const data = await response.json();
+                if (response.ok) { loadMyCourses(); } else { alert(data.message || "Could not move to revision."); }
+            });
+        });
+    }
+
+    loadMyCourses();
+}
+
+const approvalsList = document.getElementById("approvals-list");
+
+if (approvalsList) {
+    const token = localStorage.getItem("access_token");
+
+    // Statuses that actually need admin attention on this page
+    const relevantStatuses = ["SUBMITTED", "RESUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED"];
+
+    async function loadApprovals() {
+        try {
+            const [coursesRes, categoriesRes, usersRes] = await Promise.all([
+                fetch("http://127.0.0.1:5000/api/courses"),
+                fetch("http://127.0.0.1:5000/api/categories"),
+                fetch("http://127.0.0.1:5000/api/users", { headers: { "Authorization": "Bearer " + token } })
+            ]);
+
+            const coursesData = await coursesRes.json();
+            const categoriesData = await categoriesRes.json();
+            const usersData = await usersRes.json();
+
+            const categoryMap = {};
+            categoriesData.categories.forEach(function(c) { categoryMap[c.category_id] = c.category_name; });
+
+            const userMap = {};
+            usersData.users.forEach(function(u) { userMap[u.user_id] = u.full_name; });
+
+            const relevantCourses = coursesData.courses.filter(function(course) {
+                return relevantStatuses.includes(course.status);
+            });
+
+            approvalsList.innerHTML = "";
+
+            if (relevantCourses.length === 0) {
+                approvalsList.innerHTML = "<p>No courses awaiting action right now.</p>";
+                return;
+            }
+
+            relevantCourses.forEach(function(course) {
+                const item = document.createElement("div");
+                item.className = "approval-item";
+                item.dataset.courseId = course.course_id;
+
+                let actionsHTML = "";
+
+                if (course.status === "SUBMITTED" || course.status === "RESUBMITTED") {
+                    actionsHTML = "<button class='review-btn'>Start Review</button>";
+                } else if (course.status === "UNDER_REVIEW") {
+                    actionsHTML = "<button class='approve-btn'>Approve</button> <button class='reject-btn'>Reject</button>";
+                } else if (course.status === "APPROVED") {
+                    actionsHTML = "<button class='publish-btn'>Publish</button>";
+                } else {
+                    actionsHTML = "<span style='color:#5B6472;'>Awaiting trainer revision</span>";
+                }
+
+                item.innerHTML =
+                    "<div>" +
+                        "<h3>" + course.title + "</h3>" +
+                        "<p>Submitted by: " + (userMap[course.trainer_id] || "Unknown") +
+                        " | Category: " + (categoryMap[course.category_id] || "Uncategorized") +
+                        " | Status: <span class='status-badge status-pending'>" + course.status + "</span></p>" +
+                    "</div>" +
+                    "<div class='approval-actions'>" + actionsHTML + "</div>";
+
+                approvalsList.appendChild(item);
+            });
+
+            attachApprovalEvents();
+        } catch (error) {
+            approvalsList.innerHTML = "<p>Could not load courses.</p>";
+        }
+    }
+
+    async function doWorkflowAction(courseId, action) {
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/courses/" + courseId + "/" + action, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({})
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                loadApprovals();
+            } else {
+                alert(data.message || "Action failed.");
+            }
+        } catch (error) {
+            alert("Could not reach the server.");
+        }
+    }
+
+    function attachApprovalEvents() {
+        document.querySelectorAll(".review-btn").forEach(function(btn) {
+            btn.addEventListener("click", function() {
+                doWorkflowAction(btn.closest(".approval-item").dataset.courseId, "review");
+            });
+        });
+        document.querySelectorAll(".approve-btn").forEach(function(btn) {
+            btn.addEventListener("click", function() {
+                doWorkflowAction(btn.closest(".approval-item").dataset.courseId, "approve");
+            });
+        });
+        document.querySelectorAll(".reject-btn").forEach(function(btn) {
+            btn.addEventListener("click", function() {
+                doWorkflowAction(btn.closest(".approval-item").dataset.courseId, "reject");
+            });
+        });
+        document.querySelectorAll(".publish-btn").forEach(function(btn) {
+            btn.addEventListener("click", function() {
+                doWorkflowAction(btn.closest(".approval-item").dataset.courseId, "publish");
+            });
+        });
+    }
+
+    loadApprovals();
 }
 
 const evalButtons = document.querySelectorAll(".eval-submit-btn");
