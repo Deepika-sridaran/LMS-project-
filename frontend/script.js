@@ -224,15 +224,17 @@ if (myCoursesList) {
             }
 
             item.innerHTML =
-                "<div>" +
-                    "<h3>" + course.title + "</h3>" +
-                    "<p>Status: <span class='status-badge " + statusClass(course.status) + "'>" + course.status + "</span></p>" +
-                "</div>" +
-                "<div class='trainer-course-actions'>" +
-                    "<button class='course-edit-btn'>Edit</button>" +
-                    "<button class='course-delete-btn'>Delete</button> " +
-                    workflowHTML +
-                "</div>";
+            "<div>" +
+                "<h3>" + course.title + "</h3>" +
+                "<p>Course ID: " + course.course_id + "</p>" +
+                "<p>Status: <span class='status-badge " + statusClass(course.status) + "'>" + course.status + "</span></p>" +
+            "</div>" +
+            "<div class='trainer-course-actions'>" +
+                "<button class='course-edit-btn'>Edit</button>" +
+                "<button class='course-delete-btn'>Delete</button> " +
+                "<a href='manage-course-content.html?course_id=" + course.course_id + "'><button type='button'>Manage Content</button></a> " +
+                workflowHTML +
+            "</div>";
 
             myCoursesList.appendChild(item);
             });
@@ -1606,13 +1608,6 @@ if (trainerModuleList && trainerAddModuleForm) {
     const params =
         new URLSearchParams(window.location.search);
 
-    const courseId = params.get("course_id");
-
-    const messageElement =
-        document.getElementById(
-            "trainer-content-message"
-        );
-
     function showTrainerMessage(message, color) {
         messageElement.textContent = message;
         messageElement.style.color = color;
@@ -1659,10 +1654,13 @@ if (trainerModuleList && trainerAddModuleForm) {
     }
 
     async function loadTrainerModules() {
+        const courseId = params.get("course_id");
+        const messageElement = document.getElementById("trainer-content-message");
         if (!courseId) {
-            trainerModuleList.innerHTML =
-                "<p>Course ID is missing.</p>";
-            return;
+            document.getElementById("manage-course-title").textContent = "No course selected";
+             messageElement.textContent = "Please open this page from a specific course in your 'My Courses' list.";
+            trainerModuleList.innerHTML = "";
+            } else {
         }
 
         try {
@@ -2089,6 +2087,7 @@ if (trainerModuleList && trainerAddModuleForm) {
     );
 
     loadTrainerModules();
+    
 }
 
 const addQuestionBtn = document.getElementById("add-question-btn");
