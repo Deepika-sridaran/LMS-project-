@@ -888,11 +888,6 @@ if (assignmentForm) {
     assignmentForm.addEventListener("submit", async function(event) {
         event.preventDefault();
 
-        if (!assignmentId) {
-            message.textContent = "No assignment selected. Open this page using an assignment link (assignment-submit.html?assignment=<id>).";
-            message.style.color = "#c0392b";
-            return;
-        }
         const fileInput = document.getElementById("submission-file");
         const comments = document.getElementById("submission-comments").value.trim();
 
@@ -902,28 +897,23 @@ if (assignmentForm) {
             return;
         }
 
-        // Note: the backend only stores a file PATH string, not the actual file
-        // contents — there's no real file-upload storage endpoint yet, so we
-        // send the chosen file's name as a placeholder.
-        const fileName = fileInput.files[0].name;
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+        formData.append("comments", comments);
 
         try {
             const response = await fetch("http://127.0.0.1:5000/api/assignments/" + assignmentId + "/submit", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
                     "Authorization": "Bearer " + token
                 },
-                body: JSON.stringify({
-                    file_path: fileName,
-                    comments: comments
-                })
+                body: formData
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                message.textContent = "Submitted: " + fileName + " — awaiting evaluation.";
+                message.textContent = "Submitted successfully — awaiting evaluation.";
                 message.style.color = "#27ae60";
                 assignmentForm.reset();
             } else {
@@ -931,9 +921,9 @@ if (assignmentForm) {
                 message.style.color = "#c0392b";
             }
         } catch (error) {
-            message.textContent = "Could not reach the server.";
-            message.style.color = "#c0392b";
-        }
+                message.textContent = "Could not reach the server.";
+                message.style.color = "#c0392b";
+            }
     });
 }
 

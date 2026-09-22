@@ -1,5 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
+from flask import send_from_directory
+import os
 
 from config import Config
 from extensions import db, bcrypt, jwt, migrate
@@ -113,6 +115,17 @@ def create_app():
 
     # Quiz Attempts - Dev 2
     app.register_blueprint(quiz_attempt_bp)
+
+    DATABASE_DIR = os.path.join(
+    os.path.dirname(
+        os.path.dirname(os.path.abspath(__file__))
+    ),
+    "database"
+    )
+
+    @app.route("/database/<path:subpath>")
+    def serve_database_file(subpath):
+        return send_from_directory(DATABASE_DIR, subpath)
 
     @app.route("/")
     def home():

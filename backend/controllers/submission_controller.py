@@ -9,19 +9,21 @@ from services.submission_service import (
     evaluate_submission
 )
 
-
 def submit_assignment(assignment_id):
     student_id = get_jwt_identity()
 
-    data = request.get_json() or {}
+    if isinstance(student_id, dict):
+        student_id = student_id.get("user_id")
 
-    file_path = data.get("file_path")
-    comments = data.get("comments")
+    student_id = int(student_id)
+
+    comments = request.form.get("comments")
+    file = request.files.get("file")
 
     submission, error = create_submission(
         assignment_id=assignment_id,
         student_id=student_id,
-        file_path=file_path,
+        file=file,
         comments=comments
     )
 
@@ -48,7 +50,6 @@ def submit_assignment(assignment_id):
             )
         }
     }), 201
-
 
 def get_single_submission(submission_id):
     submission = get_submission(submission_id)
