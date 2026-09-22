@@ -1608,6 +1608,11 @@ if (trainerModuleList && trainerAddModuleForm) {
     const params =
         new URLSearchParams(window.location.search);
 
+    const courseId = params.get("course_id");
+
+    const messageElement =
+        document.getElementById("trainer-content-message");
+
     function showTrainerMessage(message, color) {
         messageElement.textContent = message;
         messageElement.style.color = color;
