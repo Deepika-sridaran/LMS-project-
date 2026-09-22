@@ -5,6 +5,7 @@ from services.dashboard_service import (
     get_user_role,
     get_admin_dashboard,
     get_trainer_dashboard,
+    get_trainer_students,
     get_student_dashboard,
     get_reports
 )
@@ -50,6 +51,20 @@ def trainer_dashboard():
         "data": get_trainer_dashboard(user_id)
     }), 200
 
+def trainer_students():
+    user_id = current_user_id()
+    role = get_user_role(user_id)
+
+    if role != "Trainer":
+        return jsonify({
+            "success": False,
+            "message": "Trainer access required"
+        }), 403
+
+    return jsonify({
+        "success": True,
+        "data": get_trainer_students(user_id)
+    }), 200
 
 def student_dashboard():
     user_id = current_user_id()

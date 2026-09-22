@@ -6,6 +6,7 @@ from controllers.dashboard_controller import (
     admin_dashboard,
     trainer_dashboard,
     student_dashboard,
+    trainer_students,
     reports
 )
 
@@ -34,6 +35,13 @@ def admin_dashboard_route():
 def trainer_dashboard_route():
     return trainer_dashboard()
 
+@dashboard_bp.route(
+    "/trainer/students",
+    methods=["GET"]
+)
+@jwt_required()
+def trainer_students_route():
+    return trainer_students()
 
 @dashboard_bp.route(
     "/student",

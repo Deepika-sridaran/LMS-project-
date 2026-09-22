@@ -164,11 +164,135 @@ def get_trainer_dashboard(trainer_id):
             )
         })
 
+        total_students = db.session.execute(
+        text("""
+            SELECT COUNT(DISTINCT e.student_id)
+            FROM enrollments e
+            JOIN courses c
+                ON c.course_id = e.course_id
+            WHERE c.trainer_id = :trainer_id
+              AND e.status != 'CANCELLED'
+        """),
+        {"trainer_id": trainer_id}
+    ).scalar() or 0
+
+    pending_submissions = db.session.execute(
+        text("""
+            SELECT COUNT(*)
+            FROM submissions s
+            JOIN assignments a
+                ON a.assignment_id = s.assignment_id
+            JOIN courses c
+                ON c.course_id = a.course_id
+            WHERE c.trainer_id = :trainer_id
+              AND s.status != 'EVALUATED'
+        """),
+        {"trainer_id": trainer_id}
+    ).scalar() or 0
+
+    overall_rating = db.session.execute(
+        text("""
+            SELECT COALESCE(AVG(r.rating), 0)
+            FROM reviews r
+            JOIN courses c
+                ON c.course_id = r.course_id
+            WHERE c.trainer_id = :trainer_id
+        """),
+        {"trainer_id": trainer_id}
+    ).scalar() or 0
+
     return {
         "total_courses": len(course_data),
+        "total_students": total_students,
+        "pending_submissions": pending_submissions,
+        "average_rating": round(float(overall_rating), 2),
         "courses": course_data
     }
 
+def get_trainer_students(trainer_id):
+    rows = db.session.execute(
+        text("""
+            SELECT
+                u.user_id,
+                u.full_name,
+                c.course_id,
+                c.title AS course_title,
+                e.status,
+                e.enrolled_at
+            FROM enrollments e
+            JOIN courses c
+                ON c.course_id = e.course_id
+            JOIN users u
+                ON u.user_id = e.student_id
+            WHERE c.trainer_id = :trainer_id
+              AND e.status != 'CANCELLED'
+            ORDER BY c.course_id, u.full_name
+        """),
+        {"trainer_id": trainer_id}
+    ).mappings().all()
+
+    lesson_totals = {}
+
+    students = []
+
+    for row in rows:
+        course_id = row["course_id"]
+
+        if course_id not in lesson_totals:
+            lesson_totals[course_id] = db.session.execute(
+                text("""
+                    SELECT COUNT(*)
+                    FROM lessons l
+                    JOIN modules m
+                        ON m.module_id = l.module_id
+                    WHERE m.course_id = :course_id
+                """),
+                {"course_id": course_id}
+            ).scalar() or 0
+
+        completed_lessons = db.session.execute(
+            text("""
+                SELECT COUNT(*)
+                FROM lesson_progress lp
+                JOIN lessons l
+                    ON l.lesson_id = lp.lesson_id
+                WHERE lp.student_id = :student_id
+                  AND l.module_id IN (
+                      SELECT m.module_id
+                      FROM modules m
+                      WHERE m.course_id = :course_id
+                  )
+                  AND lp.completed = 1
+            """),
+            {
+                "student_id": row["user_id"],
+                "course_id": course_id
+            }
+        ).scalar() or 0
+
+        total_lessons = lesson_totals[course_id]
+
+        progress = (
+            round(
+                (completed_lessons / total_lessons) * 100,
+                2
+            )
+            if total_lessons > 0
+            else 0
+        )
+
+        students.append({
+            "student_id": row["user_id"],
+            "student_name": row["full_name"],
+            "course_id": course_id,
+            "course_title": row["course_title"],
+            "progress": progress,
+            "status": row["status"]
+        })
+
+    return {
+        "students": students
+    }
 
 def get_student_dashboard(student_id):
     courses = db.session.execute(

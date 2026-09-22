@@ -156,20 +156,20 @@ def verify_public_certificate(
             "message": "Certificate is invalid"
         }), 200
 
+    details = certificate_dict(certificate)
+
     return jsonify({
         "success": True,
         "valid": True,
         "data": {
             "certificate_number": (
-                certificate.certificate_number
+                details["certificate_number"]
             ),
-            "student_id": certificate.student_id,
-            "course_id": certificate.course_id,
-            "issued_at": (
-                certificate.issued_at.isoformat()
-                if certificate.issued_at
-                else None
-            )
+            "student_id": details["student_id"],
+            "course_id": details["course_id"],
+            "student_name": details["student_name"],
+            "course_title": details["course_title"],
+            "issued_at": details["issued_at"]
         }
     }), 200
 

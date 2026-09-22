@@ -1,5 +1,5 @@
-from flask import Blueprint
-from flask_jwt_extended import jwt_required
+from flask import Blueprint, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from controllers.enrollment_controller import (
     create_enrollment,
@@ -8,7 +8,9 @@ from controllers.enrollment_controller import (
     cancel_enrollment,
     get_my_enrollments
 )
-
+from models.enrollment import Enrollment
+from models.course import Course
+from models.user import User
 from utils.auth_utils import role_required
 
 

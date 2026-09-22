@@ -887,6 +887,11 @@ if (assignmentForm) {
     assignmentForm.addEventListener("submit", async function(event) {
         event.preventDefault();
 
+        if (!assignmentId) {
+            message.textContent = "No assignment selected. Open this page using an assignment link (assignment-submit.html?assignment=<id>).";
+            message.style.color = "#c0392b";
+            return;
+        }
         const fileInput = document.getElementById("submission-file");
         const comments = document.getElementById("submission-comments").value.trim();
 
@@ -1153,26 +1158,36 @@ courseDeleteButtons.forEach(function(button) {
 const verifyBtn = document.getElementById("verify-btn");
 
 if (verifyBtn) {
-    // Fake certificate database — later replaced by a real API call
-    // to something like GET /api/certificates/verify/:certNumber
-    const validCertificates = {
-        "LMS-2026-00143": {student: "Student Name ", course: "Introduction to Python",
-            date: "10 Sept 2026"}
-        };
-        verifyBtn.addEventListener("click", function() {
+        verifyBtn.addEventListener("click", async function() {
             const certNumber = document.getElementById("cert-input").value.trim();
             const result = document.getElementById("verify-result");
-            const certificate = validCertificates[certNumber];
+            
+            if (certNumber === "") {
+            result.innerHTML =
+                "<p style='color: #c0392b; font-weight: bold;'>Please enter a certificate number.</p>";
+            return;
+            }
 
-            if (certificate) {
+            result.innerHTML = "<p>Checking certificate...</p>";
+
+            try {
+            const response = await fetch("http://127.0.0.1:5000/api/certificates/verify/" + encodeURIComponent(certNumber));
+            const data = await response.json();
+
+            if (response.ok && data.valid) {
+                const c = data.data;
                 result.innerHTML =
                 "<p style='color: #27ae60; font-weight: bold;'>&#10003; Valid Certificate</p>" +
-                "<p>Student: " + certificate.student + "</p>" +
-                "<p>Course: " + certificate.course + "</p>" +
-                "<p>Issued on: " + certificate.date + "</p>";
-            } else {
+                "<p>Student: " + (c.student_name || ("Student ID " + c.student_id)) + "</p>" +
+                "<p>Course: " + (c.course_title || ("Course ID " + c.course_id)) + "</p>" +
+                "<p>Issued on: " + (c.issued_at ? new Date(c.issued_at).toLocaleDateString() : "-") + "</p>";
+                } else {
                 result.innerHTML =
                 "<p style='color: #c0392b; font-weight: bold;'>&#10007; Invalid Certificate Number</p>";
+            } 
+        } catch (error) {
+                result.innerHTML = 
+                "<p style='color: #c0392b; font-weight: bold;'>Could not reach the server. Is the backend running?</p>";
             }
         });
 }
@@ -3365,7 +3380,216 @@ async function deleteNotification(notificationId) {
     }
 }
 
-
 document.addEventListener("DOMContentLoaded", loadNotifications);
+
+/* ================= STUDENT DASHBOARD (Feature: dashboard stats) ================= */
+
+const studentCoursesList = document.getElementById("student-courses-list");
+
+if (studentCoursesList) {
+    const token = localStorage.getItem("access_token");
+
+    async function loadStudentDashboard() {
+        if (!token) {
+            studentCoursesList.innerHTML = "<p>Please <a href='index.html'>log in</a> to see your dashboard.</p>";
+            const certCount = document.getElementById("certificates-count");
+            if (certCount) certCount.textContent = "";
+            return;
+        }
+
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/dashboard/student", {
+                headers: { "Authorization": "Bearer " + token }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                studentCoursesList.innerHTML = "<p>" + (data.message || "Could not load dashboard.") + "</p>";
+                return;
+            }
+
+            const courses = data.data.courses;
+
+            studentCoursesList.innerHTML = "";
+
+            if (courses.length === 0) {
+                studentCoursesList.innerHTML = "<p>You are not enrolled in any course yet. <a href='courses.html'>Browse courses</a>.</p>";
+            } else {
+                courses.forEach(function(course) {
+                    const card = document.createElement("div");
+                    card.className = "course-card";
+                    card.innerHTML =
+                        "<h3>" + course.course_title + "</h3>" +
+                        "<p>Status: " + course.status + "</p>" +
+                        "<p>Progress: " + course.progress + "%</p>" +
+                        "<p>Assignments: " + course.assignments.completed + " / " + course.assignments.total + " evaluated</p>" +
+                        "<div class='progress-bar-bg' style='max-width: 200px;'>" +
+                            "<div class='progress-bar-fill' style='width: " + course.progress + "%;'></div>" +
+                        "</div>";
+                    studentCoursesList.appendChild(card);
+                });
+            }
+
+            const certCount = document.getElementById("certificates-count");
+            if (certCount) {
+                certCount.textContent = "You have " + data.data.certificates + " certificate" + (data.data.certificates === 1 ? "" : "s") + ".";
+            }
+        } catch (error) {
+            studentCoursesList.innerHTML = "<p>Could not reach the server.</p>";
+        }
+    }
+
+    loadStudentDashboard();
+}
+
+
+/* ================= TRAINER DASHBOARD STATS (Feature: dashboard stats) ================= */
+
+const myCoursesCount = document.getElementById("my-courses-count");
+
+if (myCoursesCount) {
+    const token = localStorage.getItem("access_token");
+
+    async function loadTrainerDashboard() {
+        if (!token) return;
+
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/dashboard/trainer", {
+                headers: { "Authorization": "Bearer " + token }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) return;
+
+            const stats = data.data;
+
+            myCoursesCount.textContent = stats.total_courses;
+            document.getElementById("my-students-count").textContent = stats.total_students;
+            document.getElementById("pending-review-count").textContent = stats.pending_submissions;
+            document.getElementById("avg-rating").textContent = stats.average_rating;
+        } catch (error) {
+            console.log("Could not load trainer dashboard stats:", error);
+        }
+    }
+
+    loadTrainerDashboard();
+}
+
+
+/* ================= MY STUDENTS (Trainer) ================= */
+
+const studentsTableBody = document.getElementById("students-table-body");
+
+if (studentsTableBody) {
+    const token = localStorage.getItem("access_token");
+
+    async function loadMyStudents() {
+        if (!token) {
+            studentsTableBody.innerHTML = "<tr><td colspan='4'>Please <a href='index.html'>log in</a> as a trainer.</td></tr>";
+            return;
+        }
+
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/dashboard/trainer/students", {
+                headers: { "Authorization": "Bearer " + token }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                studentsTableBody.innerHTML = "<tr><td colspan='4'>" + (data.message || "Could not load students.") + "</td></tr>";
+                return;
+            }
+
+            const students = data.data.students;
+
+            studentsTableBody.innerHTML = "";
+
+            if (students.length === 0) {
+                studentsTableBody.innerHTML = "<tr><td colspan='4'>No students enrolled in your courses yet.</td></tr>";
+                return;
+            }
+
+            students.forEach(function(student) {
+                const row = document.createElement("tr");
+
+                const statusBadgeClass = student.status === "ACTIVE" ? "status-published" : "status-draft";
+
+                row.innerHTML =
+                    "<td>" + student.student_name + "</td>" +
+                    "<td>" + student.course_title + "</td>" +
+                    "<td>" +
+                        "<div class='progress-bar-bg' style='max-width: 150px;'>" +
+                            "<div class='progress-bar-fill' style='width: " + student.progress + "%;'></div>" +
+                        "</div>" +
+                        " " + student.progress + "%" +
+                    "</td>" +
+                    "<td><span class='status-badge " + statusBadgeClass + "'>" + student.status + "</span></td>";
+
+                studentsTableBody.appendChild(row);
+            });
+        } catch (error) {
+            studentsTableBody.innerHTML = "<tr><td colspan='4'>Could not reach the server.</td></tr>";
+        }
+    }
+
+    loadMyStudents();
+}
+
+
+/* ================= COURSE DETAILS: ASSIGNMENT LINKS ================= */
+
+const assignmentLinks = document.getElementById("assignment-links");
+
+if (assignmentLinks) {
+    const token = localStorage.getItem("access_token");
+    const courseId = getCourseIdFromUrl();
+
+    (async function loadAssignmentLinks() {
+        if (!courseId) {
+            assignmentLinks.innerHTML = "<p>Open this page from a course card to see its assignments.</p>";
+            return;
+        }
+
+        if (!token) {
+            assignmentLinks.innerHTML = "<p><a href='index.html'>Log in</a> to see this course's assignments.</p>";
+            return;
+        }
+
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/courses/" + courseId + "/assignments", {
+                headers: { "Authorization": "Bearer " + token }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                assignmentLinks.innerHTML = "<p>" + (data.message || "Could not load assignments.") + "</p>";
+                return;
+            }
+
+            const assignments = data.data;
+
+            if (!assignments || assignments.length === 0) {
+                assignmentLinks.innerHTML = "<p>No assignments for this course yet.</p>";
+                return;
+            }
+
+            assignmentLinks.innerHTML = "";
+
+            assignments.forEach(function(assignment) {
+                const link = document.createElement("a");
+                link.href = "assignment-submit.html?assignment=" + assignment.assignment_id;
+                link.innerHTML = "<button type='button'>Submit Assignment: " + assignment.title + "</button>";
+                assignmentLinks.appendChild(link);
+            });
+        } catch (error) {
+            assignmentLinks.innerHTML = "<p>Could not reach the server.</p>";
+        }
+    })();
+}
+
 
 
