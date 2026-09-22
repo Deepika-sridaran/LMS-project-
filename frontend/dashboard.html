@@ -11,10 +11,9 @@
         <nav>
             <h2>LMS</h2>
             <ul>
-                <li><a href="dashboard.html">Dashboard</a></li>
-                <li><a href="courses.html">Courses</a></li>
-                <li><a href="progress.html">Progress</a></li>
-                <li><a href="notifications.html">Notifications</a></li>
+                <li><a href="dashboard.html">🏠 Dashboard</a></li>
+                <li><a href="courses.html">📚 Courses</a></li>
+                <li><a href="progress.html">📈 Progress</a></li>
                 <li><a href="profile.html">Profile</a></li>
                 <li><a href="my-enrollments.html">My Enrollments</a></li>
                 <li><a href="index.html" class="logout-link">Logout</a></li>
@@ -23,20 +22,41 @@
 
         <main>
             <h1 id="welcome-user">Welcome</h1>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 id="enrolled-courses-count">--</h3>
+                    <p>Enrolled Courses</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="completed-courses-count">--</h3>
+                    <p>Completed Courses</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="pending-assignments-count">--</h3>
+                    <p>Pending Assignments</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="certificates-earned-count">--</h3>
+                    <p>Certificates Earned</p>
+                </div>
+            </div>
+
+            
             <section id="enrolled-courses">
-                <h2>My Courses</h2>
-                <div id="student-courses-list"><p>Loading your courses...</p></div>
+                <div class="stat-card">
+                    <h2>My Courses</h2>
+                    </div>
+                    <div id="student-courses-list" class="course-list"><p>Loading your courses...</p></div>
+                
             </section>
-            <section id="certificates-section">
-                <h2>Certificates</h2>
-                <p id="certificates-count">Loading...</p>
-            </section>
+            
+
             <section id="notifications">
                 <h2>Notifications</h2>
-                <p>No new Notifications.</p>
+                <ul id="dashboard-notifications-list"><li>Loading...</li></ul>
             </section>
         </main>
-
         <script src="script.js"></script>
     </body>
 </html>

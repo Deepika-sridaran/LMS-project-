@@ -12,6 +12,10 @@
     --success-dark: #24614A;
     --danger: #B0402E;
     --danger-dark: #8C3324;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 40px;
 }
 
 * {
@@ -352,4 +356,36 @@ tbody tr:hover { background-color: var(--paper); }
 .logout-link:hover {
     color: white !important;
     border-bottom-color: var(--danger) !important;
+}
+
+.spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--border);
+    border-top-color: var(--ink);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.loading-state {
+    display: flex;
+    align-items: center;
+    color: var(--slate);
+    padding: 20px 0;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--slate);
+}
+.empty-state .empty-icon {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 10px;
 }

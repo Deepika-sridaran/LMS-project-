@@ -166,13 +166,14 @@ if (courseList) {
                 return course.status === "PUBLISHED";
             });
 
-            courseList.innerHTML = "";
+            courseList.innerHTML = "<div class='loading-state'><span class='spinner'></span>Loading courses...</div>";
 
             publishedCourses.forEach(function(course) {
                 const card = document.createElement("div");
                 card.className = "course-card";
                 card.innerHTML =
                     "<h3>" + course.title + "</h3>" +
+                    "<p>Course ID: " + course.course_id + "</p>" +
                     "<p>Category: " + (categoryMap[course.category_id] || "Uncategorized") + "</p>" +
                     "<p>Level: " + (course.level || "Not specified") + "</p>" +
                     "<a href='course-details.html?course=" + course.course_id + "'><button>View Details</button></a>";
@@ -180,7 +181,7 @@ if (courseList) {
             });
 
             if (publishedCourses.length === 0) {
-                courseList.innerHTML = "<p>No published courses available yet.</p>";
+                courseList.innerHTML = "<div class='empty-state'><span class='empty-icon'>📚</span>No published courses available yet.</div>";
             }
         } catch (error) {
             courseList.innerHTML = "<p>Could not load courses.</p>";
@@ -1533,6 +1534,7 @@ if (profileForm) {
                 const data = await response.json();
 
                 if (response.ok) {
+                    document.getElementById("profile-id").value = data.user.user_id;
                     document.getElementById("profile-name").value = data.user.full_name;
                     document.getElementById("profile-email").value = data.user.email;
                     document.getElementById("profile-role").value = data.user.role;
@@ -3084,7 +3086,7 @@ if (courseContentElement) {
         }
 
         courseContentElement.innerHTML =
-            "<p>Loading course content...</p>";
+            "<div class='loading-state'><span class='spinner'></span>Loading courses...</div>";
 
         try {
             const result = await apiRequest(
@@ -3410,6 +3412,18 @@ if (studentCoursesList) {
             }
 
             const courses = data.data.courses;
+            const enrolledEl = document.getElementById("enrolled-courses-count");
+            const completedEl = document.getElementById("completed-courses-count");
+            const pendingEl = document.getElementById("pending-assignments-count");
+            const certEarnedEl = document.getElementById("certificates-earned-count");
+
+            if (enrolledEl) enrolledEl.textContent = courses.length;
+            if (completedEl) completedEl.textContent = courses.filter(function(c) { return c.status === "COMPLETED"; }).length;
+            if (pendingEl) {
+                const pending = courses.reduce(function(sum, c) { return sum + (c.assignments.total - c.assignments.completed); }, 0);
+                pendingEl.textContent = pending;
+            }
+            if (certEarnedEl) certEarnedEl.textContent = data.data.certificates;
 
             studentCoursesList.innerHTML = "";
 
@@ -3421,6 +3435,7 @@ if (studentCoursesList) {
                     card.className = "course-card";
                     card.innerHTML =
                         "<h3>" + course.course_title + "</h3>" +
+                        "<p>Course ID: " + course.course_id + "</p>" +
                         "<p>Status: " + course.status + "</p>" +
                         "<p>Progress: " + course.progress + "%</p>" +
                         "<p>Assignments: " + course.assignments.completed + " / " + course.assignments.total + " evaluated</p>" +
@@ -3591,5 +3606,70 @@ if (assignmentLinks) {
     })();
 }
 
+/* ================= ADMIN DASHBOARD STATS (Feature: dashboard stats) ================= */
 
+const totalStudentsEl = document.getElementById("total-students");
 
+if (totalStudentsEl && document.querySelector("nav h2") && document.querySelector("nav h2").textContent.includes("Admin")) {
+    const token = localStorage.getItem("access_token");
+
+    (async function loadAdminDashboard() {
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/dashboard/admin", {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                const stats = data.data;
+                document.getElementById("total-students").textContent = stats.total_students;
+                document.getElementById("total-trainers").textContent = stats.total_trainers;
+                document.getElementById("total-courses").textContent = stats.total_courses;
+                document.getElementById("published-courses").textContent = stats.published_courses;
+                document.getElementById("pending-approvals").textContent = stats.pending_approvals;
+                document.getElementById("total-enrollments").textContent = stats.total_enrollments;
+                document.getElementById("completion-rate").textContent = stats.overall_completion_rate + "%";
+            }
+        } catch (error) {
+            console.log("Could not load admin dashboard stats:", error);
+        }
+    })();
+}
+
+const dashboardNotificationsList = document.getElementById("dashboard-notifications-list");
+
+if (dashboardNotificationsList) {
+    const token = localStorage.getItem("access_token");
+
+    (async function loadDashboardNotifications() {
+        if (!token) {
+            dashboardNotificationsList.innerHTML = "<li>Please log in.</li>";
+            return;
+        }
+
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/notifications", {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            const result = await response.json();
+
+            const notifications = (result.data || []).slice(0, 5);
+
+            if (!response.ok || notifications.length === 0) {
+                dashboardNotificationsList.innerHTML = "<li>No new notifications.</li>";
+                return;
+            }
+
+            dashboardNotificationsList.innerHTML = "";
+
+            notifications.forEach(function(n) {
+                const li = document.createElement("li");
+                li.className = "notification-item" + (n.is_read ? "" : " unread");
+                li.innerHTML = "<strong>" + n.title + "</strong><p>" + n.message + "</p>";
+                dashboardNotificationsList.appendChild(li);
+            });
+        } catch (error) {
+            dashboardNotificationsList.innerHTML = "<li>Unable to load notifications.</li>";
+        }
+    })();
+}
