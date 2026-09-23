@@ -1,7 +1,9 @@
 import os
 from urllib.parse import quote_plus
 from dotenv import load_dotenv
+from datetime import timedelta
 
+JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ENV_FILE = os.path.join(BASE_DIR, ".env")
