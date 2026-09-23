@@ -1123,31 +1123,6 @@ if (usersTableBody) {
     loadUsers();
 }
 
-const courseEditButtons = document.querySelectorAll(".course-edit-btn");
-const courseDeleteButtons = document.querySelectorAll(".course-delete-btn");
-
-courseEditButtons.forEach(function(button) {
-    button.addEventListener("click", function() {
-        const item = button.closest(".trainer-course-item");
-        const courseName = item.querySelector("h3").textContent;
-        alert("Edit course: " + courseName);
-        // Later: this will redirect to create-course.html pre-filled with this course's data
-    });
-});
-
-courseDeleteButtons.forEach(function(button) {
-    button.addEventListener("click", function() {
-        const item = button.closest(".trainer-course-item");
-        const courseName = item.querySelector("h3").textContent;
-
-        const confirmation = confirm("Are you sure you want to delete \"" 
-            + courseName + "\"?");
-        if (confirmation) {
-            item.remove();
-        }
-    });
-});
-
 const verifyBtn = document.getElementById("verify-btn");
 
 if (verifyBtn) {
@@ -1602,7 +1577,6 @@ const trainerAddModuleForm =
     document.getElementById("add-module-form");
 
 if (trainerModuleList && trainerAddModuleForm) {
-    const API_BASE_URL = "http://127.0.0.1:5000";
     const token = localStorage.getItem("access_token");
 
     const params =
@@ -2259,16 +2233,7 @@ if (addQuestionBtn) {
 }
 
 if (window.location.pathname.includes("course-details.html")) {
-    const API_BASE_URL = "http://127.0.0.1:5000";
-    const params = new URLSearchParams(window.location.search);
-    const courseKey = params.get("course");
     const token = localStorage.getItem("access_token");
-
-    const courseIds = {
-        python: 1,
-        webdesign: 2,
-        datastructures: 3
-    };
 
     const backendCourseId = getCourseIdFromUrl();
     const takeQuizLink = document.getElementById("take-quiz-link");
@@ -2843,15 +2808,6 @@ const certificateMessage = document.getElementById("certificate-message");
 
 if (viewCertificateBtn && certificateMessage) {
 
-    const params = new URLSearchParams(window.location.search);
-    const courseKey = params.get("course");
-
-    const courseDataForCertificate = {
-        python: 1,
-        webdesign: 8,
-        datastructures: 6
-    };
-
     const actualCourseId = getCourseIdFromUrl();
     const token = localStorage.getItem("access_token");
 
@@ -2876,7 +2832,6 @@ if (viewCertificateBtn && certificateMessage) {
 const courseContentElement =document.getElementById("course-content");
 
 if (courseContentElement) {
-    const API_BASE_URL = "http://127.0.0.1:5000";
     const token = localStorage.getItem("access_token");
     const params = new URLSearchParams(window.location.search);
 
